@@ -378,7 +378,7 @@ def patient_dashboard(request):
 
 
 # --- LOG KAYDETME API ---
-
+# Deploy ederken CSRF korumasını devre dışı bırakmayı unutma!
 @csrf_exempt
 @login_required
 def save_progress(request):

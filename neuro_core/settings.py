@@ -97,3 +97,11 @@ EMAIL_USE_TLS = True
 # Lütfen aşağıdaki iki satırı kendi bilgilerinizle değiştirin:
 EMAIL_HOST_USER = 'seninmailin@gmail.com'   # Gönderici olacak Gmail adresiniz
 EMAIL_HOST_PASSWORD = 'xxxx xxxx xxxx xxxx' # Gmail'den alacağınız 16 haneli "Uygulama Şifresi"
+
+# --- MEDYA (Yüklenen Dosyalar / Müzikler) AYARLARI ---
+# Müzik dosyalarının (MP3) erişilebilir olması için gereklidir.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Kullanıcı giriş yapmadan sayfaya girmeye çalışırsa 'login' sayfasına atılsın:
+LOGIN_URL = 'login'

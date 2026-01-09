@@ -315,7 +315,11 @@
             display.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
         }
     }
-
+    //Eğer projeyi canlıya alırken @csrf_exempt'i kaldırırsan, JS fetch kısmına şu satırı eklemen gerekir:
+    //headers: {
+    //'Content-Type': 'application/json',
+    //'X-CSRFToken': '{{ csrf_token }}' // Bunu eklemezsen 403 hatası alabilirsin (Exempt yoksa)
+},
     function saveProgress(completed) {
         fetch("{% url 'save_progress' %}", {
             method: 'POST',
