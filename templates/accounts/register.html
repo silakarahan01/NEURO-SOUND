@@ -1,0 +1,388 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroSound Terapi - Kayıt Ol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('{% static "images/stars-night.avif" %}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        
+        .glassmorphism {
+            background: rgba(23, 23, 23, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .input-glow:focus {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .role-radio:checked + div {
+            border-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.2);
+            color: white;
+        }
+        
+        /* Tooltip Stilleri */
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        /* Hata durumunda tooltip'i manuel göstereceğimiz için hover kuralını duruma göre JS ile yöneteceğiz veya class ekleyeceğiz */
+        .show-tooltip .tooltip,
+        .has-tooltip:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .validation-item {
+            transition: all 0.3s ease;
+        }
+        .validation-item.valid {
+            color: #10b981; /* emerald-500 */
+        }
+        .validation-item.invalid {
+            color: #ef4444; /* red-500 */
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 py-10 relative">
+    
+    <div class="fixed inset-0 bg-gradient-to-br from-purple-900/30 via-stone-900/50 to-violet-900/30"></div>
+
+    <a href="{% url 'landing' %}" class="absolute top-6 left-6 z-20 text-stone-400 hover:text-white transition flex items-center gap-2 bg-stone-800/50 px-4 py-2 rounded-full border border-white/10 hover:bg-stone-700 backdrop-blur-sm group">
+        <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i> 
+        <span class="text-sm font-medium">Anasayfa</span>
+    </a>
+    
+    <div class="relative z-10 w-full max-w-lg">
+        
+        <div class="text-center mb-6 float-animation">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-700 rounded-full mb-4 shadow-lg shadow-violet-500/50">
+                <i class="fas fa-user-plus text-2xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold gradient-text mb-1">Aramıza Katılın</h1>
+            <p class="text-stone-400 text-sm">NeuroSound Terapi Platformu</p>
+        </div>
+        
+        <div class="glassmorphism rounded-3xl shadow-2xl border border-white/10 p-8">
+            
+            {% if error %}
+            <div class="mb-6">
+                <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {{ error }}
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="post" class="space-y-5" novalidate id="registerForm">
+                {% csrf_token %}
+                
+                <!-- Ad & Soyad -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="has-tooltip relative group" id="div-first_name">
+                        <label class="block text-stone-300 text-xs font-medium mb-2">Ad</label>
+                        <input type="text" name="first_name" required 
+                               class="w-full px-4 py-3 bg-stone-800/50 border border-stone-700 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:border-violet-500 input-glow transition duration-300" 
+                               placeholder="Adınız" oninput="validateName(this)">
+                        <!-- Tooltip -->
+                        <div class="tooltip absolute -top-10 left-0 w-full bg-red-500/90 text-white text-xs p-2 rounded shadow-lg text-center hidden" id="error-first_name">
+                            Rakam içeremez!
+                        </div>
+                    </div>
+                    <div class="has-tooltip relative group" id="div-last_name">
+                        <label class="block text-stone-300 text-xs font-medium mb-2">Soyad</label>
+                        <input type="text" name="last_name" required 
+                               class="w-full px-4 py-3 bg-stone-800/50 border border-stone-700 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:border-violet-500 input-glow transition duration-300" 
+                               placeholder="Soyadınız" oninput="validateName(this)">
+                        <div class="tooltip absolute -top-10 left-0 w-full bg-red-500/90 text-white text-xs p-2 rounded shadow-lg text-center hidden" id="error-last_name">
+                            Rakam içeremez!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kullanıcı Adı -->
+                <div class="has-tooltip relative group">
+                    <label class="block text-stone-300 text-xs font-medium mb-2">Kullanıcı Adı <span class="text-violet-400 text-[10px] ml-1">(Önemli!)</span></label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500"><i class="fas fa-user"></i></span>
+                        <input type="text" name="username" required 
+                               class="w-full pl-10 pr-4 py-3 bg-stone-800/50 border border-stone-700 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:border-violet-500 input-glow transition duration-300" 
+                               placeholder="kullaniciadi" oninput="validateUsername(this)">
+                    </div>
+                    <!-- Bilgi Hover'ı -->
+                    <div class="tooltip absolute bottom-full mb-2 left-0 w-full bg-stone-700 text-stone-200 text-xs p-3 rounded-lg shadow-xl border border-stone-600 z-50">
+                        <p class="font-bold text-violet-300 mb-1"><i class="fas fa-info-circle"></i> Dikkat</p>
+                        Sisteme giriş yaparken bu ismi kullanacaksınız. Lütfen boşluk bırakmadan, bitişik yazınız.
+                    </div>
+                    <!-- Hata Mesajı -->
+                    <p class="text-red-400 text-xs mt-1 hidden" id="error-username">Boşluk içeremez!</p>
+                </div>
+
+                <!-- E-posta -->
+                <div class="relative group">
+                    <label class="block text-stone-300 text-xs font-medium mb-2">E-posta</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500"><i class="fas fa-envelope"></i></span>
+                        <input type="email" name="email" required 
+                               class="w-full pl-10 pr-4 py-3 bg-stone-800/50 border border-stone-700 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:border-violet-500 input-glow transition duration-300" 
+                               placeholder="ornek@mail.com" onblur="validateEmail(this)" oninput="clearError(this, 'error-email')">
+                    </div>
+                    <p class="text-red-400 text-xs mt-1 hidden" id="error-email">Geçerli bir e-posta adresi giriniz (@ içermeli).</p>
+                </div>
+
+                <!-- Şifre -->
+                <div>
+                    <label class="block text-stone-300 text-xs font-medium mb-2">Şifre</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500"><i class="fas fa-lock"></i></span>
+                        <input type="password" name="password" required id="passwordInput"
+                               class="w-full pl-10 pr-4 py-3 bg-stone-800/50 border border-stone-700 rounded-xl text-white placeholder-stone-500 focus:outline-none focus:border-violet-500 input-glow transition duration-300" 
+                               placeholder="••••••••" oninput="validatePassword(this)">
+                    </div>
+                    
+                    <!-- Şifre Gereksinimleri -->
+                    <div class="mt-3 bg-stone-800/50 p-3 rounded-lg border border-stone-700/50">
+                        <p class="text-[10px] text-stone-400 mb-2 uppercase font-bold tracking-wider">Şifre Gereksinimleri:</p>
+                        <ul class="text-xs space-y-1 text-stone-500">
+                            <li id="req-length" class="validation-item flex items-center gap-2"><i class="fas fa-circle text-[6px]"></i> En az 8 karakter</li>
+                            <li id="req-upper" class="validation-item flex items-center gap-2"><i class="fas fa-circle text-[6px]"></i> En az 1 büyük harf</li>
+                            <li id="req-number" class="validation-item flex items-center gap-2"><i class="fas fa-circle text-[6px]"></i> En az 1 rakam</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Hesap Türü -->
+                <div>
+                    <label class="block text-stone-300 text-xs font-medium mb-2">Hesap Türü</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="role" value="patient" class="hidden role-radio" checked>
+                            <div class="border border-stone-700 bg-stone-800/50 rounded-xl p-3 text-center transition duration-300 group-hover:border-stone-500">
+                                <i class="fas fa-user-injured text-xl mb-1 block text-stone-400 group-hover:text-stone-200"></i>
+                                <span class="text-sm font-medium text-stone-400 group-hover:text-stone-200">Danışan</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="role" value="psychologist" class="hidden role-radio">
+                            <div class="border border-stone-700 bg-stone-800/50 rounded-xl p-3 text-center transition duration-300 group-hover:border-stone-500">
+                                <i class="fas fa-user-md text-xl mb-1 block text-stone-400 group-hover:text-stone-200"></i>
+                                <span class="text-sm font-medium text-stone-400 group-hover:text-stone-200">Psikolog</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-violet-500/30 transition duration-300 transform hover:scale-[1.02] active:scale-[0.98] mt-4">
+                    Hesabı Oluştur
+                </button>
+
+                <div class="text-center mt-4 text-sm">
+                    <span class="text-stone-400">Zaten hesabınız var mı? </span>
+                    <a href="{% url 'login' %}" class="text-violet-400 hover:text-violet-300 font-semibold transition">Giriş Yap</a>
+                </div>
+
+            </form>
+        </div>
+        
+        <div class="mt-6 text-center text-xs text-stone-500">
+            <p>&copy; 2025 NeuroSound Terapi Platformu.</p>
+        </div>
+    </div>
+
+    <script>
+        // Form Gönderim Kontrolü
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            let isValid = true;
+            let firstInvalidInput = null;
+
+            // Yardımcı Fonksiyon: Hata Göster
+            function markInvalid(input, errorId, errorMsg) {
+                input.classList.add('border-red-500', 'focus:border-red-500');
+                input.classList.remove('border-stone-700', 'focus:border-violet-500');
+                
+                if (errorId) {
+                    const errorEl = document.getElementById(errorId);
+                    if (errorEl) {
+                        if (errorMsg) errorEl.innerText = errorMsg; // Mesajı dinamik güncelle
+                        errorEl.classList.remove('hidden');
+                        
+                        // Tooltip için parent div'e class ekle (İsim/Soyad için)
+                        if(input.name === 'first_name' || input.name === 'last_name') {
+                            input.parentElement.classList.add('show-tooltip');
+                        }
+                    }
+                }
+                
+                if (!firstInvalidInput) firstInvalidInput = input;
+                isValid = false;
+            }
+
+            // 1. İsim Kontrolü
+            const firstName = document.querySelector('input[name="first_name"]');
+            if (!firstName.value.trim()) {
+                markInvalid(firstName, 'error-first_name', 'Bu alan zorunludur!');
+            } else if (/\d/.test(firstName.value)) {
+                markInvalid(firstName, 'error-first_name', 'Rakam içeremez!');
+            }
+
+            // 2. Soyad Kontrolü
+            const lastName = document.querySelector('input[name="last_name"]');
+            if (!lastName.value.trim()) {
+                markInvalid(lastName, 'error-last_name', 'Bu alan zorunludur!');
+            } else if (/\d/.test(lastName.value)) {
+                markInvalid(lastName, 'error-last_name', 'Rakam içeremez!');
+            }
+
+            // 3. Kullanıcı Adı Kontrolü
+            const username = document.querySelector('input[name="username"]');
+            if (!username.value.trim()) {
+                markInvalid(username, 'error-username', 'Bu alan zorunludur!');
+            } else if (/\s/.test(username.value)) {
+                markInvalid(username, 'error-username', 'Boşluk içeremez!');
+            }
+
+            // 4. E-posta Kontrolü
+            const email = document.querySelector('input[name="email"]');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email.value.trim()) {
+                markInvalid(email, 'error-email', 'E-posta adresi zorunludur.');
+            } else if (!emailRegex.test(email.value)) {
+                markInvalid(email, 'error-email', 'Geçerli bir e-posta giriniz.');
+            }
+
+            // 5. Şifre Kontrolü
+            const password = document.querySelector('input[name="password"]');
+            const pwVal = password.value;
+            if (pwVal.length < 8 || !/[A-Z]/.test(pwVal) || !/\d/.test(pwVal)) {
+                markInvalid(password, null); // Şifre hataları zaten listede
+                // Şifre listesini güncellemek için fonksiyonu çağır
+                validatePassword(password);
+            }
+
+            if (!isValid) {
+                event.preventDefault(); // Sayfa yenilenmesini engelle
+                if (firstInvalidInput) {
+                    firstInvalidInput.focus();
+                    firstInvalidInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+
+        // Mevcut Validasyon Fonksiyonları (Hataları temizlemek için güncellendi)
+        function clearError(input, errorId) {
+            input.classList.remove('border-red-500', 'focus:border-red-500');
+            input.classList.add('border-stone-700', 'focus:border-violet-500');
+            const errorEl = document.getElementById(errorId);
+            if (errorEl) errorEl.classList.add('hidden');
+            if (input.parentElement.classList.contains('show-tooltip')) {
+                input.parentElement.classList.remove('show-tooltip');
+            }
+        }
+
+        function validateName(input) {
+            const hasNumber = /\d/.test(input.value);
+            const errorDiv = document.getElementById('error-' + input.name);
+            
+            if (hasNumber) {
+                input.classList.add('border-red-500', 'focus:border-red-500');
+                input.classList.remove('border-stone-700', 'focus:border-violet-500');
+                errorDiv.innerText = 'Rakam içeremez!';
+                errorDiv.classList.remove('hidden');
+            } else {
+                clearError(input, 'error-' + input.name);
+            }
+        }
+
+        function validateUsername(input) {
+            const hasSpace = /\s/.test(input.value);
+            const errorP = document.getElementById('error-username');
+            
+            if (hasSpace) {
+                input.value = input.value.replace(/\s/g, ''); 
+                errorP.innerText = 'Boşluk içeremez!';
+                errorP.classList.remove('hidden');
+                setTimeout(() => errorP.classList.add('hidden'), 2000);
+            } else {
+                clearError(input, 'error-username');
+            }
+        }
+
+        function validateEmail(input) {
+            const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
+            const errorP = document.getElementById('error-email');
+            
+            if (input.value && !isValid) {
+                errorP.innerText = 'Geçerli bir e-posta adresi giriniz (@ içermeli).';
+                errorP.classList.remove('hidden');
+                input.classList.add('border-red-500');
+            } else {
+                clearError(input, 'error-email');
+            }
+        }
+
+        function validatePassword(input) {
+            const val = input.value;
+            const reqLength = document.getElementById('req-length');
+            const reqUpper = document.getElementById('req-upper');
+            const reqNumber = document.getElementById('req-number');
+            
+            // Input border temizle (Kullanıcı yazarken kırmızı kalksın, listeden takip etsin)
+            if(input.classList.contains('border-red-500')) {
+                input.classList.remove('border-red-500', 'focus:border-red-500');
+                input.classList.add('border-stone-700', 'focus:border-violet-500');
+            }
+
+            // Kriter Kontrolleri
+            const isLength = val.length >= 8;
+            const isUpper = /[A-Z]/.test(val);
+            const isNumber = /\d/.test(val);
+
+            // Görsel Güncelleme
+            updateReq(reqLength, isLength);
+            updateReq(reqUpper, isUpper);
+            updateReq(reqNumber, isNumber);
+        }
+
+        function updateReq(el, isValid) {
+            if (isValid) {
+                el.classList.remove('text-stone-500', 'invalid');
+                el.classList.add('valid', 'text-emerald-400');
+                el.querySelector('i').className = 'fas fa-check-circle text-xs';
+            } else {
+                el.classList.remove('valid', 'text-emerald-400');
+                el.classList.add('text-stone-500');
+                el.querySelector('i').className = 'fas fa-circle text-[6px]';
+            }
+        }
+    </script>
+</body>
+</html>

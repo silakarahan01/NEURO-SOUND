@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Başlık -->
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl mb-4 shadow-lg shadow-violet-500/30">
+            <i class="fas fa-user-shield text-2xl text-white"></i>
+        </div>
+        <h2 class="text-3xl font-bold text-white mb-2">Yönetici Paneli</h2>
+        <p class="text-stone-400">Onay bekleyen psikolog başvurularını yönetin</p>
+    </div>
+
+    <!-- Mesajlar -->
+    {% if messages %}
+    <div class="mb-8">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl border {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/20 text-emerald-400{% elif message.tags == 'error' %}bg-red-500/10 border-red-500/20 text-red-400{% else %}bg-blue-500/10 border-blue-500/20 text-blue-400{% endif %} flex items-center gap-3">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Liste -->
+    <div class="grid gap-4">
+        {% for psy in psychologists %}
+        <div class="glass-card p-6 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-6 transition hover:bg-stone-800/40">
+            
+            <!-- Kişi Bilgisi -->
+            <div class="flex items-center gap-4 w-full lg:w-auto">
+                <div class="w-14 h-14 bg-stone-700/50 rounded-full flex items-center justify-center text-xl font-bold text-stone-300 ring-2 ring-stone-600">
+                    {{ psy.first_name|first }}{{ psy.last_name|first }}
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        {{ psy.first_name }} {{ psy.last_name }}
+                        <span class="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Psikolog</span>
+                    </h3>
+                    <div class="text-sm text-stone-400 flex flex-col sm:flex-row gap-1 sm:gap-4 mt-1">
+                        <span class="flex items-center gap-1"><i class="fas fa-envelope text-stone-500"></i> {{ psy.email }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aksiyonlar -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto bg-stone-900/50 p-3 rounded-xl border border-white/5">
+                
+                <!-- Adım 1: Kod Gönder -->
+                <button onclick="sendCode(this, {{ psy.id }})" class="w-full sm:w-auto bg-stone-700 hover:bg-stone-600 text-white px-4 py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2 group">
+                    <i class="fas fa-paper-plane group-hover:-translate-y-0.5 transition-transform"></i> 
+                    <span>Kod Gönder</span>
+                </button>
+
+                <div class="hidden sm:block w-px h-8 bg-stone-700"></div>
+
+                <!-- Adım 2: Onayla -->
+                <form action="{% url 'approve_psychologist' %}" method="POST" class="flex w-full sm:w-auto gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" value="{{ psy.id }}">
+                    <input type="text" name="code" placeholder="Gelen Kod" class="w-full sm:w-28 bg-stone-800 border border-stone-600 text-white text-sm rounded-lg px-3 py-2.5 outline-none focus:border-violet-500 transition text-center tracking-widest" required>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+                        <i class="fas fa-check"></i> Onayla
+                    </button>
+                </form>
+
+                <div class="hidden sm:block w-px h-8 bg-stone-700"></div>
+
+                <!-- YENİ: Reddet / Sil Butonu -->
+                <!-- URL 'delete_user' olarak tanımlanmıştı -->
+                <a href="{% url 'delete_user' psy.id %}" onclick="return confirm('Bu kullanıcıyı ve tüm verilerini kalıcı olarak silmek istediğinize emin misiniz?')" class="w-full sm:w-auto bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-3 py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2" title="Kullanıcıyı Sil">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-16">
+            <div class="w-20 h-20 bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clipboard-check text-3xl text-stone-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-stone-300">Bekleyen Başvuru Yok</h3>
+            <p class="text-stone-500 mt-1">Şu an onay bekleyen herhangi bir psikolog kaydı bulunmuyor.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+async function sendCode(btn, userId) {
+    const originalText = btn.innerHTML;
+    
+    // Yükleniyor durumu
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gönderiliyor...';
+    btn.classList.add('opacity-75');
+
+    try {
+        const response = await fetch(`/super-admin/send-code/${userId}/`);
+        const data = await response.json();
+        
+        if(data.status === 'success') {
+            btn.innerHTML = '<i class="fas fa-check"></i> Gönderildi';
+            btn.classList.remove('bg-stone-700', 'hover:bg-stone-600');
+            btn.classList.add('bg-green-600', 'text-white');
+            
+            // 3 saniye sonra eski haline dön
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'bg-green-600');
+                btn.classList.add('bg-stone-700');
+            }, 3000);
+        } else {
+            alert('Hata: ' + data.message);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch(e) {
+        alert('Bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+</script>
+
+<style>
+    .glass-card {
+        background: rgba(30, 30, 30, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>
+{% endblock %}

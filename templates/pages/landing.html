@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Navbar kaldırıldı, base.html'den geliyor -->
+
+<div class="flex flex-col items-center justify-center min-h-[80vh] text-center px-4 relative overflow-hidden -mt-10"> <!-- -mt-10 ile base.html padding'ini dengeliyoruz -->
+    
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px] animate-pulse-slower"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[150px]"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="mb-32 max-w-6xl mx-auto float-animation relative z-10 mt-10">
+        <!-- Icon -->
+        <div class="inline-flex items-center justify-center w-28 h-28 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-3xl mb-10 ring-1 ring-violet-500/30 shadow-[0_0_60px_rgba(139,92,246,0.4)] backdrop-blur-md relative group hover:scale-110 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-br from-violet-600 to-purple-600 rounded-3xl opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            <i class="fas fa-brain text-6xl text-transparent bg-clip-text bg-gradient-to-br from-violet-300 to-purple-300"></i>
+        </div>
+        
+        <h1 class="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-200 via-white to-emerald-200 mb-8 drop-shadow-2xl tracking-tight leading-tight">
+            Zihninizi<br/>
+            <span class="bg-gradient-to-r from-emerald-300 via-violet-300 to-purple-300 bg-clip-text">Özgürleştirin</span>
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-stone-300 mb-12 leading-relaxed max-w-3xl mx-auto font-light">
+            Bilimsel <span class="text-violet-400 font-semibold">binaural frekanslar</span> ile beyninizin potansiyelini açığa çıkarın.
+            <br class="hidden md:block"/>
+            Uyku, odaklanma ve meditasyon için <span class="text-emerald-400 font-semibold">kişiselleştirilmiş</span> ses terapisi.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-5 justify-center items-center mb-12">
+            <a href="{% url 'register' %}" class="group px-10 py-5 bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-bold rounded-2xl shadow-2xl shadow-violet-600/40 transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 flex items-center justify-center gap-3 min-w-[200px]">
+                <i class="fas fa-rocket group-hover:rotate-12 transition-transform"></i> 
+                <span>Hemen Başla</span>
+                <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </a>
+            <a href="{% url 'login' %}" class="px-10 py-5 bg-stone-800/50 hover:bg-stone-800 border-2 border-white/10 hover:border-violet-500/50 text-white font-bold rounded-2xl backdrop-blur-md transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center justify-center gap-3 min-w-[200px]">
+                <i class="fas fa-sign-in-alt"></i> 
+                <span>Giriş Yap</span>
+            </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex flex-wrap justify-center gap-8 md:gap-12 text-center">
+            <div class="group cursor-pointer">
+                <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform">10K+</div>
+                <div class="text-stone-400 text-sm mt-1">Aktif Kullanıcı</div>
+            </div>
+            <div class="group cursor-pointer">
+                <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform">50K+</div>
+                <div class="text-stone-400 text-sm mt-1">Seans Tamamlandı</div>
+            </div>
+            <div class="group cursor-pointer">
+                <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform">4.9★</div>
+                <div class="text-stone-400 text-sm mt-1">Kullanıcı Puanı</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div id="ozellikler" class="w-full max-w-7xl mb-32 relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-5xl md:text-6xl font-black text-white mb-6">
+                Neden <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">NeuroSound?</span>
+            </h2>
+            <p class="text-xl text-stone-400 max-w-2xl mx-auto">Bilim ve teknolojinin zihin sağlığı ile buluştuğu nokta</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature Card 1 -->
+            <div class="premium-card group">
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ring-1 ring-emerald-500/30 shadow-lg shadow-emerald-500/20">
+                        <i class="fas fa-wave-square text-3xl text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4 group-hover:text-emerald-300 transition">Bilimsel Frekanslar</h3>
+                    <p class="text-stone-400 leading-relaxed mb-4">
+                        Delta, Theta, Alpha, Beta ve Gamma dalgaları ile beyninizin potansiyelini ortaya çıkarın.
+                    </p>
+                    <ul class="space-y-2 text-stone-500 text-sm">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-400"></i> Derin uyku için Delta dalgaları</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-400"></i> Meditasyon için Theta</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-400"></i> Odaklanma için Beta</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Feature Card 2 -->
+            <div class="premium-card group">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ring-1 ring-blue-500/30 shadow-lg shadow-blue-500/20">
+                        <i class="fas fa-user-md text-3xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4 group-hover:text-blue-300 transition">Uzman Takibi</h3>
+                    <p class="text-stone-400 leading-relaxed mb-4">
+                        Psikoloğunuz tarafından özel olarak atanan dijital reçeteleri kolayca uygulayın.
+                    </p>
+                    <ul class="space-y-2 text-stone-500 text-sm">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400"></i> Kişiselleştirilmiş tedavi planları</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400"></i> Gelişim raporları</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-blue-400"></i> Uzman desteği</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Feature Card 3 -->
+            <div class="premium-card group">
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ring-1 ring-purple-500/30 shadow-lg shadow-purple-500/20">
+                        <i class="fas fa-music text-3xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4 group-hover:text-purple-300 transition">Doğa Ambiyansı</h3>
+                    <p class="text-stone-400 leading-relaxed mb-4">
+                        Yağmur, orman ve okyanus sesleri ile terapi deneyiminizi kişiselleştirin.
+                    </p>
+                    <ul class="space-y-2 text-stone-500 text-sm">
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400"></i> 20+ doğa sesi</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400"></i> Karıştırılabilir sesler</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check text-purple-400"></i> HD kalite</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div id="nasil-calisir" class="w-full max-w-7xl mb-32 relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-5xl md:text-6xl font-black text-white mb-6">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">Nasıl</span> Çalışır?
+            </h2>
+            <p class="text-xl text-stone-400 max-w-2xl mx-auto">Üç basit adımda zihninizi geliştirmeye başlayın</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center group">
+                <div class="relative inline-block mb-6">
+                    <div class="w-24 h-24 bg-gradient-to-br from-violet-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-violet-600/40 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                        <span class="text-4xl font-black text-white">1</span>
+                    </div>
+                    <div class="absolute -right-2 -top-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                        <i class="fas fa-check text-white text-sm"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">Kayıt Ol</h3>
+                <p class="text-stone-400">Ücretsiz hesap oluşturun ve hedeflerinizi belirleyin</p>
+            </div>
+
+            <div class="text-center group">
+                <div class="relative inline-block mb-6">
+                    <div class="w-24 h-24 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-600/40 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                        <span class="text-4xl font-black text-white">2</span>
+                    </div>
+                    <div class="absolute -right-2 -top-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                        <i class="fas fa-check text-white text-sm"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">Seç & Başlat</h3>
+                <p class="text-stone-400">Size uygun frekans ve ambiyansı seçin</p>
+            </div>
+
+            <div class="text-center group">
+                <div class="relative inline-block mb-6">
+                    <div class="w-24 h-24 bg-gradient-to-br from-orange-600 to-amber-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-600/40 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                        <span class="text-4xl font-black text-white">3</span>
+                    </div>
+                    <div class="absolute -right-2 -top-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                        <i class="fas fa-check text-white text-sm"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">Sonuçları Gör</h3>
+                <p class="text-stone-400">İlerlemenizi takip edin ve sonuçları yaşayın</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="w-full max-w-5xl mb-20 relative z-10">
+        <div class="premium-card text-center p-12 md:p-16 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-purple-600/20 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div class="absolute top-0 right-0 w-64 h-64 bg-violet-600/10 rounded-full blur-[100px] group-hover:scale-150 transition-transform duration-1000"></div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/10 rounded-full blur-[100px] group-hover:scale-150 transition-transform duration-1000"></div>
+            
+            <div class="relative">
+                <h2 class="text-4xl md:text-6xl font-black text-white mb-6">
+                    Zihin Yolculuğunuza<br/>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400">Bugün Başlayın</span>
+                </h2>
+                <p class="text-xl text-stone-300 mb-10 max-w-2xl mx-auto">
+                    Binlerce kullanıcı NeuroSound ile hayatını değiştiriyor. Sıradaki siz olun!
+                </p>
+                <a href="{% url 'register' %}" class="inline-flex items-center gap-3 px-12 py-6 bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 hover:from-violet-500 hover:via-purple-500 hover:to-pink-500 text-white text-lg font-bold rounded-2xl shadow-2xl shadow-violet-600/50 transition-all duration-300 transform hover:scale-110 hover:-translate-y-2">
+                    <i class="fas fa-sparkles"></i>
+                    <span>Ücretsiz Dene</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (Modified to Left Alignment) -->
+    <div class="w-full max-w-7xl border-t border-white/5 pt-12 pb-8 text-left relative z-10">
+        <div class="flex flex-col md:flex-row justify-end items-start gap-6">
+            <!-- Right Side: Social Icons -->
+            <div class="flex gap-4">
+                <a href="https://www.instagram.com/karahansila/?hl=tr" class="w-10 h-10 bg-stone-800/50 hover:bg-violet-600 rounded-xl flex items-center justify-center transition">
+                    <i class="fab fa-instagram text-stone-400"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/s%C4%B1la-karahan-602a48276/" class="w-10 h-10 bg-stone-800/50 hover:bg-violet-600 rounded-xl flex items-center justify-center transition">
+                    <i class="fab fa-linkedin text-stone-400"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .premium-card {
+        background: rgba(30, 30, 30, 0.5);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 2.5rem;
+        border-radius: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.5s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .premium-card:hover {
+        background: rgba(30, 30, 30, 0.7);
+        border-color: rgba(139, 92, 246, 0.3);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 60px rgba(139, 92, 246, 0.2);
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    .float-animation {
+        animation: float 8s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-slow {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.1); }
+    }
+    
+    @keyframes pulse-slower {
+        0%, 100% { opacity: 0.2; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(1.15); }
+    }
+    
+    .animate-pulse-slow {
+        animation: pulse-slow 8s ease-in-out infinite;
+    }
+    
+    .animate-pulse-slower {
+        animation: pulse-slower 10s ease-in-out infinite;
+    }
+
+    .bg-size-200 {
+        background-size: 200%;
+    }
+
+    .bg-pos-0 {
+        background-position: 0%;
+    }
+
+    .bg-pos-100 {
+        background-position: 100%;
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 3rem;
+        }
+    }
+</style>
+{% endblock %}

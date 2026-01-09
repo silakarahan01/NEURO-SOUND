@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Sayfaya özel Glassmorphism stili */
+    .glass-card {
+        background: rgba(30, 30, 30, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .input-dark {
+        background-color: rgba(41, 37, 36, 0.5);
+        border-color: rgba(68, 64, 60, 1);
+        color: white;
+    }
+    .input-dark:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+    }
+    
+    /* Seçim kutusu ok işaretini beyaz yap */
+    select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    /* Çoklu Seçim Kartları */
+    .freq-option {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    .freq-option:hover {
+        background-color: rgba(255,255,255,0.05);
+        transform: translateY(-2px);
+    }
+    .freq-option.selected {
+        background-color: rgba(139, 92, 246, 0.15); /* Violet tint */
+        border-color: #8b5cf6;
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+        transform: translateY(0);
+    }
+    .freq-option.selected i.main-icon {
+        color: #a78bfa;
+        transform: scale(1.1);
+    }
+    
+    /* Seçili kart üzerindeki onay ikonu */
+    .check-icon {
+        opacity: 0;
+        transform: scale(0);
+        transition: all 0.3s;
+    }
+    .freq-option.selected .check-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* Tablo Stilleri */
+    .table-row-hover:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Modal Animasyonu */
+    @keyframes modalPop {
+        0% { transform: scale(0.9); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-content {
+        animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+</style>
+
+<div class="min-h-[calc(100vh-200px)] py-8 px-4">
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- Mesajlar -->
+        {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-xl border {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/20 text-emerald-400{% else %}bg-red-500/10 border-red-500/20 text-red-400{% endif %} flex items-center gap-3">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Üst Kısım: Reçete Oluşturma Formu -->
+        <div class="glass-card p-6 sm:p-8 lg:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+            
+            <!-- Dekoratif Arka Plan Işıltıları -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-violet-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-48 h-48 bg-purple-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+            
+            <div class="mb-8 border-b border-white/10 pb-6 relative z-10">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div class="bg-violet-500/20 p-3 sm:p-4 rounded-2xl ring-1 ring-violet-500/30 shrink-0">
+                        <i class="fas fa-file-medical text-violet-300 text-xl sm:text-2xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl sm:text-2xl font-bold text-white">Yeni Reçete Ata</h2>
+                        <p class="text-stone-400 mt-1 text-xs sm:text-sm">Hastanız için frekansları seçin ve her biri için özel süre/gün belirleyin.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form -->
+            <form id="prescriptionForm" class="space-y-8 relative z-10">
+                {% csrf_token %}
+                
+                <!-- Danışan Seçimi -->
+                <div class="bg-stone-800/30 p-4 rounded-2xl border border-white/5">
+                    <label class="block text-xs font-bold text-violet-300 uppercase tracking-wider mb-2">
+                        <i class="fas fa-user mr-1"></i> Danışan Seç
+                    </label>
+                    <select name="patient_id" id="patient_id" class="w-full p-3 sm:p-4 rounded-xl input-dark outline-none transition duration-200" required>
+                        <option value="" class="bg-stone-800 text-stone-400">Listeden Seçiniz...</option>
+                        {% for p in patients %}
+                        <option value="{{ p.id }}" class="bg-stone-800">{{ p.first_name }} {{ p.last_name }} ({{ p.username }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Çoklu Frekans Seçimi ve Ayarları -->
+                <div>
+                    <label class="block text-xs font-bold text-violet-300 uppercase tracking-wider mb-4">
+                        <i class="fas fa-sliders-h mr-1"></i> Frekans Programı Oluştur
+                    </label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        
+                        <!-- Delta Kartı -->
+                        <div class="freq-option bg-stone-800/50 rounded-2xl p-4 flex flex-col gap-3" onclick="toggleFreq(this)" data-freq="Delta">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-stone-700/50 flex items-center justify-center transition-colors">
+                                        <i class="fas fa-bed text-lg text-stone-400 main-icon transition-colors"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-stone-200">Delta</h4>
+                                        <span class="text-[10px] text-stone-500 block">0.5-4Hz (Uyku)</span>
+                                    </div>
+                                </div>
+                                <div class="check-icon text-emerald-400">
+                                    <i class="fas fa-check-circle text-xl"></i>
+                                </div>
+                            </div>
+                            <!-- Gizli Ayarlar -->
+                            <div class="freq-settings hidden mt-2 pt-3 border-t border-white/10 space-y-3" onclick="stopProp(event)">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Süre (Dk)</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 duration-input" value="15" min="1" max="120">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Gün</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 days-input" value="15" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Theta Kartı -->
+                        <div class="freq-option bg-stone-800/50 rounded-2xl p-4 flex flex-col gap-3" onclick="toggleFreq(this)" data-freq="Theta">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-stone-700/50 flex items-center justify-center transition-colors">
+                                        <i class="fas fa-spa text-lg text-stone-400 main-icon transition-colors"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-stone-200">Theta</h4>
+                                        <span class="text-[10px] text-stone-500 block">4-8Hz (Med.)</span>
+                                    </div>
+                                </div>
+                                <div class="check-icon text-emerald-400">
+                                    <i class="fas fa-check-circle text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="freq-settings hidden mt-2 pt-3 border-t border-white/10 space-y-3" onclick="stopProp(event)">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Süre (Dk)</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 duration-input" value="15" min="1" max="120">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Gün</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 days-input" value="15" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alpha Kartı -->
+                        <div class="freq-option bg-stone-800/50 rounded-2xl p-4 flex flex-col gap-3" onclick="toggleFreq(this)" data-freq="Alpha">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-stone-700/50 flex items-center justify-center transition-colors">
+                                        <i class="fas fa-wind text-lg text-stone-400 main-icon transition-colors"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-stone-200">Alpha</h4>
+                                        <span class="text-[10px] text-stone-500 block">8-13Hz (Relax)</span>
+                                    </div>
+                                </div>
+                                <div class="check-icon text-emerald-400">
+                                    <i class="fas fa-check-circle text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="freq-settings hidden mt-2 pt-3 border-t border-white/10 space-y-3" onclick="stopProp(event)">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Süre (Dk)</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 duration-input" value="15" min="1" max="120">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Gün</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 days-input" value="15" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Beta Kartı -->
+                        <div class="freq-option bg-stone-800/50 rounded-2xl p-4 flex flex-col gap-3" onclick="toggleFreq(this)" data-freq="Beta">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-stone-700/50 flex items-center justify-center transition-colors">
+                                        <i class="fas fa-brain text-lg text-stone-400 main-icon transition-colors"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-stone-200">Beta</h4>
+                                        <span class="text-[10px] text-stone-500 block">13-30Hz (Odak)</span>
+                                    </div>
+                                </div>
+                                <div class="check-icon text-emerald-400">
+                                    <i class="fas fa-check-circle text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="freq-settings hidden mt-2 pt-3 border-t border-white/10 space-y-3" onclick="stopProp(event)">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Süre (Dk)</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 duration-input" value="15" min="1" max="120">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Gün</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 days-input" value="15" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gamma Kartı -->
+                        <div class="freq-option bg-stone-800/50 rounded-2xl p-4 flex flex-col gap-3" onclick="toggleFreq(this)" data-freq="Gamma">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-stone-700/50 flex items-center justify-center transition-colors">
+                                        <i class="fas fa-bolt text-lg text-stone-400 main-icon transition-colors"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-stone-200">Gamma</h4>
+                                        <span class="text-[10px] text-stone-500 block">30Hz+ (Bilişsel)</span>
+                                    </div>
+                                </div>
+                                <div class="check-icon text-emerald-400">
+                                    <i class="fas fa-check-circle text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="freq-settings hidden mt-2 pt-3 border-t border-white/10 space-y-3" onclick="stopProp(event)">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Süre (Dk)</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 duration-input" value="15" min="1" max="120">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-stone-400 block mb-1">Gün</label>
+                                        <input type="number" class="w-full bg-stone-900/50 border border-stone-600 rounded-lg p-2 text-white text-sm outline-none focus:border-violet-500 days-input" value="15" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Notlar -->
+                <div>
+                    <label class="block text-xs font-bold text-violet-300 uppercase tracking-wider mb-2">
+                        <i class="fas fa-sticky-note mr-1"></i> Genel Notlar
+                    </label>
+                    <textarea id="notes" name="notes" class="w-full p-3 sm:p-4 rounded-xl input-dark outline-none transition duration-200 resize-none" rows="3" placeholder="Tüm program için geçerli özel talimatlar..."></textarea>
+                </div>
+
+                <!-- Kaydet Butonu -->
+                <button type="button" onclick="submitPrescriptions()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 sm:py-4 rounded-xl transition duration-200 shadow-lg shadow-emerald-900/30 flex justify-center items-center gap-2 transform hover:scale-[1.01] active:scale-[0.99]">
+                    <i class="fas fa-paper-plane text-base sm:text-lg"></i> 
+                    <span class="text-sm sm:text-base">Reçeteyi Oluştur ve Gönder</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- ALT KISIM: Aktif Reçeteler Listesi -->
+        <div class="glass-card p-6 rounded-3xl">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                <div class="p-2 bg-blue-600/20 rounded-lg"><i class="fas fa-list-alt text-blue-400"></i></div>
+                Tanımlanan Aktif Reçeteler
+            </h3>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-stone-400">
+                    <thead class="text-xs text-stone-500 uppercase bg-stone-800/50 border-b border-white/5">
+                        <tr>
+                            <th class="px-6 py-3">Danışan</th>
+                            <th class="px-6 py-3">Frekans</th>
+                            <th class="px-6 py-3">Süre / Gün</th>
+                            <th class="px-6 py-3">Tarih</th>
+                            <th class="px-6 py-3 text-right">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pres in prescriptions %}
+                        <tr class="table-row-hover border-b border-white/5 transition">
+                            <td class="px-6 py-4 font-medium text-white">{{ pres.patient.first_name }} {{ pres.patient.last_name }}</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-violet-500/20 text-violet-300 px-2 py-1 rounded text-xs border border-violet-500/30">
+                                    {{ pres.get_frequency_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">{{ pres.duration_minutes }} dk / {{ pres.total_days }} gün</td>
+                            <td class="px-6 py-4">{{ pres.created_at|date:"d M Y" }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="{% url 'delete_prescription' pres.id %}" onclick="return confirm('Bu reçeteyi silmek istediğinize emin misiniz? Danışan panelinden de kalkacaktır.')" class="text-red-400 hover:text-red-300 transition bg-red-500/10 px-3 py-1.5 rounded-lg hover:bg-red-500/20">
+                                    <i class="fas fa-trash-alt mr-1"></i> Sil
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-stone-600 italic">Henüz atanmış bir reçete bulunmuyor.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- BAŞARI POP-UP MODAL -->
+<div id="successModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="modal-content bg-stone-900 border border-white/10 p-8 rounded-3xl shadow-2xl text-center max-w-sm mx-4 relative">
+        <div class="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 ring-2 ring-emerald-500/40">
+            <i class="fas fa-check text-4xl text-emerald-400"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-white mb-2">Başarılı!</h3>
+        <p class="text-stone-400 text-sm mb-8">Reçeteler hastanıza başarıyla tanımlandı.</p>
+        <button onclick="window.location.reload()" class="w-full bg-stone-800 hover:bg-stone-700 border border-stone-600 text-white font-bold py-3 rounded-xl transition duration-200">
+            Tamam
+        </button>
+    </div>
+</div>
+
+<script>
+    function toggleFreq(element) {
+        if (element.classList.contains('selected')) {
+            element.classList.remove('selected');
+            const settings = element.querySelector('.freq-settings');
+            settings.classList.add('hidden');
+        } else {
+            element.classList.add('selected');
+            const settings = element.querySelector('.freq-settings');
+            settings.classList.remove('hidden');
+        }
+    }
+
+    function stopProp(event) { event.stopPropagation(); }
+
+    async function submitPrescriptions() {
+        const patientId = document.getElementById('patient_id').value;
+        const notes = document.getElementById('notes').value;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const selectedCards = document.querySelectorAll('.freq-option.selected');
+
+        if (!patientId) { alert("Lütfen bir danışan seçiniz."); return; }
+        if (selectedCards.length === 0) { alert("Lütfen en az bir frekans seçiniz."); return; }
+
+        // Her seçili kart için özel verileri topla ve gönder
+        const requests = Array.from(selectedCards).map(card => {
+            const freq = card.getAttribute('data-freq');
+            // Her kartın kendi input değerini alıyoruz
+            const duration = card.querySelector('.duration-input').value;
+            const days = card.querySelector('.days-input').value;
+
+            const formData = new FormData();
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            formData.append('patient_id', patientId);
+            formData.append('frequency', freq);
+            formData.append('duration', duration);
+            formData.append('days', days);
+            formData.append('notes', notes);
+
+            return fetch(window.location.href, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                body: formData
+            });
+        });
+
+        try {
+            await Promise.all(requests);
+            document.getElementById('successModal').classList.remove('hidden');
+        } catch (error) {
+            console.error('Hata:', error);
+            alert("Bir hata oluştu.");
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    
+    <div class="mb-8 text-center">
+        <h2 class="text-3xl font-bold text-white mb-2">Terapi Fon Müziği Seçin</h2>
+        <p class="text-stone-400">Binaural frekanslarınızın arka planında çalacak rahatlatıcı bir ambiyans seçin.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Sessiz Mod Seçeneği -->
+        <a href="{% url 'patient_dashboard' %}" class="group relative overflow-hidden rounded-3xl bg-stone-800 border border-stone-700 hover:border-stone-500 transition-all duration-300 hover:-translate-y-1">
+            <div class="p-6 flex flex-col items-center justify-center h-64 text-center">
+                <div class="w-16 h-16 rounded-full bg-stone-700 flex items-center justify-center mb-4 group-hover:bg-stone-600 transition">
+                    <i class="fas fa-volume-mute text-2xl text-stone-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1">Sessiz Mod</h3>
+                <p class="text-sm text-stone-500">Sadece frekans sesi</p>
+            </div>
+        </a>
+
+        {% for track in tracks %}
+        <a href="{% url 'patient_dashboard' %}?bg_music={{ track.file }}&title={{ track.title }}" class="group relative overflow-hidden rounded-3xl bg-stone-800 border border-stone-700 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
+            <!-- Arka Plan Gradyanı -->
+            <div class="absolute inset-0 bg-gradient-to-br {{ track.color }} opacity-10 group-hover:opacity-20 transition-opacity"></div>
+            
+            <div class="p-6 flex flex-col items-center justify-center h-64 text-center relative z-10">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-br {{ track.color }} flex items-center justify-center mb-4 shadow-lg shadow-black/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas {{ track.icon }} text-3xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1">{{ track.title }}</h3>
+                <p class="text-sm text-stone-400">{{ track.desc }}</p>
+                
+                <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
+                    <span class="bg-white/10 px-4 py-1 rounded-full text-xs font-bold text-white backdrop-blur-sm border border-white/10">
+                        Seç ve Başla
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
