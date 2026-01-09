@@ -23,6 +23,10 @@ def landing_view(request):
     """
     return render(request, 'pages/landing.html')
 
+def cookie_policy_view(request):
+    """Çerez Politikası sayfası"""
+    return render(request, 'pages/cookie_policy.html')
+
 def login_view(request):
     """
     Giriş işlemi. Custom form (UserLoginForm) kullanılır.

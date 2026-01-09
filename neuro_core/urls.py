@@ -11,6 +11,7 @@ urlpatterns = [
     # --- ANA SAYFALAR ---
     # DÜZELTME: '/' yerine '' (boş string) kullanıldı.
     path('', views.landing_view, name='landing'),
+    path('cookie-policy/', views.cookie_policy_view, name='cookie_policy'),
     
     # Giriş ve Kayıt İşlemleri
     path('login/', views.login_view, name='login'),
