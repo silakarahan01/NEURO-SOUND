@@ -30,7 +30,7 @@ class CustomUserAdmin(UserAdmin):
 
 # Reçete Modeli için Admin Ayarları
 class PrescriptionAdmin(admin.ModelAdmin):
-    list_display = ['patient', 'assigned_by', 'frequency', 'duration_minutes', 'total_days', 'created_at']
+    list_display = ['patient', 'assigned_by', 'frequency', 'duration_minutes', 'total_days', 'created_at','notes']
     list_filter = ['frequency', 'created_at']
     search_fields = ['patient__username', 'assigned_by__username']
 

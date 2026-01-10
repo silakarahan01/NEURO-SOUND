@@ -12,6 +12,7 @@ import json
 from django.core.mail import send_mail
 from django.conf import settings
 import random
+from datetime import timedelta
 
 # --- GİRİŞ VE TANITIM İŞLEMLERİ ---
 
@@ -325,6 +326,66 @@ def delete_prescription(request, pres_id):
     messages.warning(request, f"{patient_name} adlı danışanın reçetesi silindi.")
     return redirect('psychologist_dashboard')
 
+@login_required
+def patient_detail_view(request, patient_id):
+    """
+    Psikoloğun hastasının detaylarını, notlarını ve dinleme geçmişini gördüğü sayfa.
+    """
+    if not request.user.is_psychologist:
+        return redirect('landing')
+
+    # Sadece kendi hastasını görebilir
+    patient = get_object_or_404(User, id=patient_id, assigned_psychologist=request.user)
+
+    # Not güncelleme (YENİ SİSTEM: SessionNote)
+    if request.method == 'POST':
+        # Eski sistem notu da buradan güncellenebilir (veya kaldırılabilir)
+        general_notes = request.POST.get('psychologist_notes')
+        if general_notes is not None:
+             patient.psychologist_notes = general_notes
+             patient.save()
+        
+        # Yeni Tarihli Not Ekleme
+        note_content = request.POST.get('session_note')
+        note_date = request.POST.get('note_date')
+        
+        if note_content and note_date:
+            from .models import SessionNote
+            SessionNote.objects.create(
+                patient=patient,
+                created_by=request.user,
+                date=note_date,
+                note=note_content
+            )
+            messages.success(request, "Yeni seans notu eklendi.")
+        
+        return redirect('patient_detail', patient_id=patient.id)
+
+    # Verileri Çek
+    active_prescriptions = Prescription.objects.filter(patient=patient).order_by('-created_at')
+    
+    # Yeni: Seans Notlarını Getir
+    from .models import SessionNote
+    session_notes = SessionNote.objects.filter(patient=patient).order_by('-date', '-created_at')
+    
+    # Son 30 günlük dinleme kayıtları
+    thirty_days_ago = timezone.now().date() - timedelta(days=30)
+    logs = ListeningLog.objects.filter(user=patient, date__gte=thirty_days_ago).order_by('-date')
+
+    # İstatistikler
+    total_listened_seconds = logs.aggregate(Sum('duration_listened'))['duration_listened__sum'] or 0
+    total_days_logged = logs.values('date').distinct().count()
+
+    context = {
+        'patient': patient,
+        'prescriptions': active_prescriptions,
+        'logs': logs,
+        'session_notes': session_notes,
+        'total_minutes': round(total_listened_seconds / 60, 1),
+        'total_days_logged': total_days_logged
+    }
+    return render(request, 'dashboard/patient_detail.html', context)
+
 
 # --- MÜZİK KÜTÜPHANESİ ---
 
@@ -359,26 +420,31 @@ def patient_dashboard(request):
         prescription = all_prescriptions.filter(id=selected_pres_id).first()
     
     if not prescription:
-        prescription = all_prescriptions.first()
-
-    today_log, created = ListeningLog.objects.get_or_create(
-        user=request.user,
-        date=timezone.now().date()
-    )
+        prescription = all_prescriptions.first() # Fallback to the first prescription if none selected or found
+       # Bugünün kaydı
+    today = timezone.now().date()
+    today_log, created = ListeningLog.objects.get_or_create(user=request.user, date=today)
     
+    # Timer ve Progress Değerleri (Template'de filtre hatasını önlemek için burada hesapla)
+    timer_start_seconds = (prescription.duration_minutes if prescription else 15) * 60
+    today_listened_seconds = today_log.duration_listened if today_log else 0
+
     history = ListeningLog.objects.filter(user=request.user).order_by('-date')
 
     selected_music = request.GET.get('bg_music', None)
     music_title = request.GET.get('title', 'Sessiz Mod')
 
-    return render(request, 'dashboard/patient_dashboard.html', {
-        'prescription': prescription,
+    context = {
         'all_prescriptions': all_prescriptions,
+        'prescription': prescription,
+        'selected_music': selected_music,
+        'music_title': music_title,
         'today_log': today_log,
         'history': history,
-        'selected_music': selected_music,
-        'music_title': music_title
-    })
+        'timer_start_seconds': timer_start_seconds,
+        'today_listened_seconds': today_listened_seconds
+    }
+    return render(request, 'dashboard/patient_dashboard.html', context)
 
 
 # --- LOG KAYDETME API ---

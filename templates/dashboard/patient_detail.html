@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .glass-card {
+        background: rgba(30, 30, 30, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .input-dark {
+        background-color: rgba(41, 37, 36, 0.5);
+        border-color: rgba(68, 64, 60, 1);
+        color: white;
+    }
+
+    .input-dark:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+    }
+</style>
+
+<div class="min-h-[calc(100vh-200px)] py-8 px-4">
+    <div class="max-w-6xl mx-auto space-y-8">
+
+        <!-- Back Button -->
+        <a href="{% url 'psychologist_dashboard' %}"
+            class="inline-flex items-center text-stone-400 hover:text-white transition">
+            <i class="fas fa-arrow-left mr-2"></i> Panele Dön
+        </a>
+
+        {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+            <div
+                class="p-4 rounded-xl border {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/20 text-emerald-400{% else %}bg-red-500/10 border-red-500/20 text-red-400{% endif %} flex items-center gap-3">
+                <i
+                    class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Header: Patient Info -->
+        <div
+            class="glass-card p-6 sm:p-10 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="absolute top-0 left-0 w-64 h-64 bg-violet-600/10 rounded-full blur-[100px] pointer-events-none">
+            </div>
+
+            <div class="flex items-center gap-4 relative z-10">
+                <div
+                    class="w-16 h-16 rounded-full bg-stone-700/50 flex items-center justify-center text-2xl text-stone-300 font-bold border border-white/10">
+                    {{ patient.first_name|first }}{{ patient.last_name|first }}
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-white">{{ patient.first_name }} {{ patient.last_name }}</h1>
+                    <p class="text-stone-400">@{{ patient.username }}</p>
+                </div>
+            </div>
+
+            <div class="flex gap-6 relative z-10">
+                <div class="text-center">
+                    <p class="text-stone-500 text-xs uppercase tracking-wider mb-1">Toplam Süre</p>
+                    <p class="text-2xl font-bold text-emerald-400">{{ total_minutes }} dk</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-stone-500 text-xs uppercase tracking-wider mb-1">Giriş Günü</p>
+                    <p class="text-2xl font-bold text-blue-400">{{ total_days_logged }} gün</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Session Notes (New System) -->
+        <div class="glass-card p-6 rounded-3xl">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fas fa-sticky-note text-yellow-500"></i>
+                Seans Notları (Özel)
+            </h3>
+            <p class="text-stone-400 text-sm mb-6">Her seans için ayrı not ekleyebilirsiniz. Bu notları sadece siz
+                görebilirsiniz.</p>
+
+            <!-- New Note Form -->
+            <form method="POST" class="bg-stone-800/30 p-4 rounded-2xl border border-white/5 mb-8">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div class="md:col-span-1">
+                        <label
+                            class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Tarih</label>
+                        <input type="date" name="note_date" required
+                            class="w-full p-3 rounded-xl input-dark outline-none text-white transition duration-200">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Seans
+                            Notu</label>
+                        <textarea name="session_note" rows="3" required
+                            class="w-full p-3 rounded-xl input-dark outline-none transition duration-200 resize-none"
+                            placeholder="Bu seans hakkında notlarınız..."></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-6 rounded-lg transition duration-200 flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Not Ekle
+                    </button>
+                </div>
+            </form>
+
+            <!-- Notes History -->
+            <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {% for note in session_notes %}
+                <div class="bg-stone-800/50 p-4 rounded-xl border border-white/5 hover:border-violet-500/30 transition">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-sm font-bold text-violet-400 flex items-center gap-2">
+                            <i class="fas fa-calendar-alt"></i> {{ note.date|date:"d F Y" }}
+                        </span>
+                        <span class="text-xs text-stone-600">{{ note.created_at|date:"H:i" }}</span>
+                    </div>
+                    <p class="text-stone-300 text-sm whitespace-pre-wrap">{{ note.note }}</p>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-stone-500 italic">
+                    <i class="fas fa-folder-open text-2xl mb-2 opacity-50 block"></i>
+                    Henüz eklenmiş bir seans notu yok.
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <!-- Section: Active Prescriptions -->
+        <div class="glass-card p-6 rounded-3xl">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <i class="fas fa-file-prescription text-purple-400"></i>
+                Aktif Reçeteler
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-stone-400">
+                    <thead class="text-xs text-stone-500 uppercase bg-stone-800/50 border-b border-white/5">
+                        <tr>
+                            <th class="px-6 py-3">Frekans</th>
+                            <th class="px-6 py-3">Süre / Gün</th>
+                            <th class="px-6 py-3">Not</th>
+                            <th class="px-6 py-3">Tarih</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pres in prescriptions %}
+                        <tr
+                            class="table-row-hover border-b border-white/5 last:border-0 hover:bg-stone-800/30 transition">
+                            <td class="px-6 py-4 font-medium text-white">{{ pres.get_frequency_display }}</td>
+                            <td class="px-6 py-4">{{ pres.duration_minutes }} dk / {{ pres.total_days }} gün</td>
+                            <td class="px-6 py-4" title="{{ pres.notes }}">{{ pres.notes|default:"-"}}</td>
+                            <td class="px-6 py-4">{{ pres.created_at|date:"d M Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-stone-600 italic">Aktif reçete yok.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section: Listening History (Last 30 Days) -->
+        <div class="glass-card p-6 rounded-3xl">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <i class="fas fa-history text-cyan-400"></i>
+                Dinleme Geçmişi (Son 30 Gün)
+            </h3>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-stone-400">
+                    <thead class="text-xs text-stone-500 uppercase bg-stone-800/50 border-b border-white/5">
+                        <tr>
+                            <th class="px-6 py-3">Tarih</th>
+                            <th class="px-6 py-3">Frekans</th>
+                            <th class="px-6 py-3">Süre</th>
+                            <th class="px-6 py-3">Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr class="border-b border-white/5 last:border-0 hover:bg-stone-800/30 transition">
+                            <td class="px-6 py-4">{{ log.date|date:"d M Y" }}</td>
+                            <td class="px-6 py-4">{{ log.get_frequency_display|default:"-" }}</td>
+                            <td class="px-6 py-4">{{ log.duration_listened|floatformat:0 }} sn</td>
+                            <td class="px-6 py-4">
+                                {% if log.is_completed %}
+                                <span class="text-emerald-400 flex items-center gap-1"><i
+                                        class="fas fa-check-circle"></i> Tamamlandı</span>
+                                {% else %}
+                                <span class="text-orange-400 flex items-center gap-1"><i class="fas fa-adjust"></i>
+                                    Yarım</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-stone-600 italic">Son 30 günde kayıt
+                                bulunamadı.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

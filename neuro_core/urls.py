@@ -28,6 +28,7 @@ urlpatterns = [
 
     # --- PSİKOLOG PANELİ & İŞLEMLERİ ---
     path('psychologist/', views.psychologist_dashboard, name='psychologist_dashboard'),
+    path('psychologist/patient/<int:patient_id>/', views.patient_detail_view, name='patient_detail'),
     path('psychologist/delete-prescription/<int:pres_id>/', views.delete_prescription, name='delete_prescription'),
 
     # --- DANIŞAN PANELİ ---

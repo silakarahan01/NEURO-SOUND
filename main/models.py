@@ -21,6 +21,9 @@ class User(AbstractUser):
         verbose_name="Atanmış Psikolog"
     )
     
+    description = models.TextField(blank=True, null=True, verbose_name="Hakkında / Notlar")
+    psychologist_notes = models.TextField(blank=True, null=True, verbose_name="Psikolog Notları (Özel)")
+
     def __str__(self):
         role = " (Psikolog)" if self.is_psychologist else " (Danışan)"
         return f"{self.username}{role}"
@@ -64,3 +67,17 @@ class ListeningLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.date} - {self.frequency} - {'Tamamlandı' if self.is_completed else 'Eksik'}"
+
+# 5. Seans Notları (Yeni)
+class SessionNote(models.Model):
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='session_notes', limit_choices_to={'is_psychologist': False})
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_notes', limit_choices_to={'is_psychologist': True})
+    date = models.DateField(default=timezone.now, verbose_name="Seans Tarihi")
+    note = models.TextField(verbose_name="Seans Notu")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+
+    def __str__(self):
+        return f"{self.patient.username} - {self.date}"
