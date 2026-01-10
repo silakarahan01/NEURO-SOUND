@@ -14,6 +14,15 @@ urlpatterns = [
     path('cookie-policy/', views.cookie_policy_view, name='cookie_policy'),
     
     # Giriş ve Kayıt İşlemleri
+    path('profile/', views.profile_view, name='profile_view'),
+    path('frequencies/', views.frequency_info_view, name='frequency_info'),
+    
+    # Yasal Sayfalar
+    path('kvkk/', views.kvkk_view, name='kvkk'),
+    path('terms/', views.terms_view, name='terms'),
+    path('privacy/', views.privacy_view, name='privacy'),
+    path('contact/', views.contact_view, name='contact'),
+    
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
@@ -37,6 +46,9 @@ urlpatterns = [
     
     # --- API (AJAX İstekleri İçin) ---
     path('api/save_progress/', views.save_progress, name='save_progress'),
+
+    # --- ABONELİK VE ÖDEME ---
+    path('subscription/payment/', views.payment_view, name='payment_view'),
 
     # --- ŞİFRE SIFIRLAMA ---
     path('password-reset/', 

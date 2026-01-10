@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Prescription, ListeningLog
+from .models import User, Prescription, ListeningLog, SubscriptionPlan, UserSubscription
 
 # Özelleştirilmiş Kullanıcı Modeli için Admin Ayarları
 class CustomUserAdmin(UserAdmin):
@@ -44,3 +44,5 @@ class ListeningLogAdmin(admin.ModelAdmin):
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Prescription, PrescriptionAdmin)
 admin.site.register(ListeningLog, ListeningLogAdmin)
+admin.site.register(SubscriptionPlan)
+admin.site.register(UserSubscription)

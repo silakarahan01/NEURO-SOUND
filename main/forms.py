@@ -23,7 +23,11 @@ class UserRegistrationForm(forms.ModelForm):
     email = forms.EmailField(label="E-posta", required=True)
     password = forms.CharField(label="Şifre", widget=forms.PasswordInput)
     role = forms.ChoiceField(
-        choices=[('patient', 'Danışan'), ('psychologist', 'Psikolog')],
+        choices=[
+            ('patient', 'Danışan (Bir psikolog ile çalışacağım)'),
+            ('individual', 'Bireysel Kullanıcı (Kendim kullanacağım)'), 
+            ('psychologist', 'Psikolog')
+        ],
         widget=forms.RadioSelect,
         required=True
     )
@@ -72,12 +76,17 @@ class UserRegistrationForm(forms.ModelForm):
         
         role = self.cleaned_data.get('role')
         
+        # Varsayılanlar
+        user.is_psychologist = False
+        user.is_individual = False
+        user.is_active = True # Danışanlar ve Bireysel aktif başlar
+        
         if role == 'psychologist':
             user.is_psychologist = True
-            user.is_active = False 
-        else:
-            user.is_psychologist = False
-            user.is_active = True # Danışanlar aktif
+            user.is_active = False # Onay bekler
+        elif role == 'individual':
+            user.is_individual = True
+            # Bireysel de aktiftir
             
         if commit:
             user.save()
@@ -89,3 +98,19 @@ class UserLoginForm(AuthenticationForm):
         'invalid_login': "Girdiğiniz kullanıcı adı veya şifre hatalı.",
         'inactive': "Hesabınız henüz onaylanmamış. Lütfen yönetici onayı bekleyin.",
     }
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'birth_date']
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = (
+                "w-full px-4 py-3 bg-stone-800/50 border border-stone-700 rounded-xl "
+                "text-white placeholder-stone-500 focus:outline-none focus:border-violet-500 transition-colors"
+            )

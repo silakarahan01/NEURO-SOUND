@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Hover Efektleri */
+    .freq-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .freq-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .freq-icon-wrapper {
+        transition: all 0.4s ease;
+    }
+
+    .freq-card:hover .freq-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+</style>
+
+<div class="min-h-screen py-16 px-4 md:px-8">
+
+    <!-- Başlık -->
+    <div class="max-w-4xl mx-auto text-center mb-16 space-y-4">
+        <h1
+            class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-300 via-purple-300 to-indigo-300 inline-block">
+            Beyin Frekansları
+        </h1>
+        <p class="text-stone-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            Beynimiz farklı durumlarda farklı elektriksel frekanslar üretir.
+            NeuroSound, bu frekansları kullanarak zihinsel durumunuzu optimize etmenize yardımcı olur.
+        </p>
+    </div>
+
+    <!-- Frekans Listesi -->
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for freq in frequencies %}
+        <div
+            class="freq-card group relative overflow-hidden rounded-3xl border border-white/10 bg-stone-900/40 backdrop-blur-xl">
+
+            <!-- Arka Plan Efekti -->
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-{{ freq.color }}-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            </div>
+
+            <div class="relative p-8 space-y-6">
+                <!-- Üst Kısım -->
+                <div class="flex items-start justify-between">
+                    <div
+                        class="freq-icon-wrapper w-16 h-16 rounded-2xl bg-{{ freq.color }}-500/20 flex items-center justify-center text-{{ freq.color }}-400 border border-{{ freq.color }}-500/20 shadow-lg shadow-{{ freq.color }}-500/10">
+                        <i class="fas {{ freq.icon }} text-2xl"></i>
+                    </div>
+                    <span
+                        class="px-4 py-1.5 rounded-full bg-stone-800/80 border border-white/5 text-stone-300 text-sm font-mono font-bold tracking-wider">
+                        {{ freq.range }}
+                    </span>
+                </div>
+
+                <!-- Başlık ve Açıklama -->
+                <div>
+                    <h3
+                        class="text-2xl font-bold text-white mb-2 group-hover:text-{{ freq.color }}-300 transition-colors">
+                        {{ freq.name }}
+                    </h3>
+                    <p class="text-stone-400 text-sm leading-relaxed">
+                        {{ freq.desc }}
+                    </p>
+                </div>
+
+                <!-- Ayırıcı Çizgi -->
+                <div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                <!-- Faydalar -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-stone-300 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fas fa-star text-yellow-500/70"></i> Faydaları
+                    </h4>
+                    <ul class="space-y-2">
+                        {% for benefit in freq.benefits %}
+                        <li class="flex items-start gap-2 text-sm text-stone-400">
+                            <i class="fas fa-check text-{{ freq.color }}-500/70 mt-1 text-xs"></i>
+                            <span>{{ benefit }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Kullanım Önerisi -->
+                <div class="pt-2">
+                    <div class="bg-stone-800/50 rounded-xl p-4 border border-white/5">
+                        <h4
+                            class="text-xs font-bold text-stone-300 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <i class="fas fa-lightbulb text-amber-500/70"></i> Ne Zaman Kullanmalı?
+                        </h4>
+                        <p class="text-sm text-stone-400 italic">
+                            "{{ freq.usage }}"
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Alt Bilgi -->
+    <div class="text-center mt-16">
+        <a href="{% url 'patient_dashboard' %}"
+            class="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-stone-800 hover:bg-stone-700 text-white font-medium transition-all hover:scale-105 border border-white/10 shadow-lg">
+            <i class="fas fa-arrow-left"></i> Panele Dön
+        </a>
+    </div>
+
+</div>
+{% endblock %}

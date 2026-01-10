@@ -55,8 +55,106 @@
     <!-- Sol Taraf: Reçete Bilgisi ve Oynatıcı -->
     <div class="lg:col-span-2 space-y-6">
 
-        <!-- ÜST LİSTE: Dr. Atamalı Reçeteler (Her zaman görünür) -->
-        {% if all_prescriptions %}
+        <!-- Abonelik Durum Kartı (Sadece Bireysel ve Aboneliği Olmayanlar İçin) -->
+        {% if user.is_individual and not subscription %}
+        <div class="glass-card p-4 rounded-2xl flex items-center justify-between border-l-4 border-l-red-500">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center bg-red-500/20 text-red-400">
+                    <i class="fas fa-crown text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">
+                        Abonelik Gerekli
+                    </h3>
+                    <p class="text-[10px] text-stone-400">
+                        Dinlemeye devam etmek için lütfen aboneliğinizi yenileyin.
+                    </p>
+                </div>
+            </div>
+            <a href="{% url 'payment_view' %}"
+                class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 text-white animate-pulse">
+                Yenile <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- ÜST LİSTE: SEÇİM ALANI -->
+        <!-- 1. BİREYSEL KULLANICI İÇİN: Frekans Kütüphanesi -->
+        {% if user.is_individual %}
+        <div class="glass-card p-5 rounded-2xl">
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                <h3 class="text-stone-300 text-sm font-bold flex items-center tracking-wide uppercase">
+                    <i class="fas fa-wave-square mr-2 text-violet-400"></i> Frekans Kütüphanesi
+                </h3>
+
+                <!-- Süre Seçici -->
+                <div class="flex items-center gap-2 bg-stone-800/50 p-1.5 rounded-lg border border-white/5">
+                    <label class="text-xs text-stone-400 font-bold px-2">Süre (Dk):</label>
+                    <input type="number" id="freqDuration" value="{{ prescription.duration_minutes }}" min="1" max="180"
+                        class="bg-stone-700 text-white text-sm font-bold w-16 text-center rounded border border-stone-600 focus:border-violet-500 focus:outline-none py-1">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {% for freq in standard_frequencies %}
+                <a href="?freq={{ freq.value }}" data-base-href="?freq={{ freq.value }}" class="freq-card-link relative group p-3 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-2
+                   {% if prescription.frequency == freq.value %}
+                       bg-violet-600/20 border-violet-500/50 shadow-[0_0_15px_rgba(139,92,246,0.15)]
+                   {% else %}
+                       bg-stone-800/40 border-white/5 hover:bg-stone-800 hover:border-white/20 hover:-translate-y-1
+                   {% endif %}">
+
+                    <div
+                        class="w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                        {% if prescription.frequency == freq.value %}bg-violet-500 text-white shadow-lg{% else %}bg-{{ freq.color_cls }}-500/20 text-{{ freq.color_cls }}-400 group-hover:bg-{{ freq.color_cls }}-500 group-hover:text-white transition{% endif %}">
+                        <i class="fas {{ freq.icon }}"></i>
+                    </div>
+
+                    <div>
+                        <span
+                            class="block text-sm font-bold {% if prescription.frequency == freq.value %}text-white{% else %}text-stone-300{% endif %}">
+                            {{ freq.label }}
+                        </span>
+                    </div>
+
+                    {% if prescription.frequency == freq.value %}
+                    <div class="absolute inset-0 border-2 border-violet-500/30 rounded-xl pointer-events-none"></div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const durationInput = document.getElementById('freqDuration');
+                    const links = document.querySelectorAll('.freq-card-link');
+
+                    // URL'den mevcut müzik parametrelerini al
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const bgMusic = urlParams.get('bg_music');
+                    const musicTitle = urlParams.get('title');
+
+                    function updateLinks() {
+                        const duration = durationInput.value;
+                        links.forEach(link => {
+                            let base = link.getAttribute('data-base-href');
+                            let newUrl = base + '&duration=' + duration;
+                            if (bgMusic) newUrl += '&bg_music=' + bgMusic;
+                            if (musicTitle) newUrl += '&title=' + musicTitle;
+                            link.href = newUrl;
+                        });
+                    }
+
+                    durationInput.addEventListener('input', updateLinks);
+                    durationInput.addEventListener('change', updateLinks); // Tetiklemek için
+
+                    // Sayfa yüklendiğinde linkleri mevcut duration ile güncelle (Müzik parametrelerini korumak için)
+                    updateLinks();
+                });
+            </script>
+        </div>
+        <!-- 2. HASTA İÇİN: Dr. Atamalı Reçeteler -->
+        {% elif all_prescriptions %}
         <div class="glass-card p-5 rounded-2xl">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-stone-300 text-sm font-bold flex items-center tracking-wide uppercase">

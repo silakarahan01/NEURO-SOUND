@@ -5,6 +5,7 @@ from django.utils import timezone
 # 1. Özelleştirilmiş Kullanıcı Modeli
 class User(AbstractUser):
     is_psychologist = models.BooleanField(default=False, verbose_name="Psikolog Mu?")
+    is_individual = models.BooleanField(default=False, verbose_name="Bireysel Kullanıcı Mı?")
     
     # Psikolog onayı için gerekli alanlar
     verification_code = models.CharField(max_length=6, blank=True, null=True, verbose_name="Doğrulama Kodu")
@@ -23,6 +24,10 @@ class User(AbstractUser):
     
     description = models.TextField(blank=True, null=True, verbose_name="Hakkında / Notlar")
     psychologist_notes = models.TextField(blank=True, null=True, verbose_name="Psikolog Notları (Özel)")
+    
+    # Kişisel Bilgiler
+    phone_number = models.CharField(max_length=15, blank=True, null=True, verbose_name="Telefon Numarası")
+    birth_date = models.DateField(blank=True, null=True, verbose_name="Doğum Tarihi")
 
     def __str__(self):
         role = " (Psikolog)" if self.is_psychologist else " (Danışan)"
@@ -81,3 +86,35 @@ class SessionNote(models.Model):
 
     def __str__(self):
         return f"{self.patient.username} - {self.date}"
+
+# 6. Abonelik Sistemi
+class SubscriptionPlan(models.Model):
+    PLAN_TYPES = (
+        ('PSYCHOLOGIST', 'Psikolog Aboneliği'),
+        ('INDIVIDUAL', 'Bireysel Abonelik'),
+    )
+    name = models.CharField(max_length=20, choices=PLAN_TYPES, unique=True, verbose_name="Plan Adı")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Fiyat (TL)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_name_display()} - {self.price} TL"
+
+    class Meta:
+        verbose_name = "Abonelik Planı"
+        verbose_name_plural = "Abonelik Planları"
+
+class UserSubscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions', verbose_name="Kullanıcı")
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.SET_NULL, null=True, verbose_name="Seçilen Plan")
+    start_date = models.DateField(default=timezone.now, verbose_name="Başlangıç Tarihi")
+    end_date = models.DateField(verbose_name="Bitiş Tarihi")
+    is_active = models.BooleanField(default=True, verbose_name="Aktif mi?")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.plan} ({self.end_date})"
+
+    class Meta:
+        verbose_name = "Kullanıcı Aboneliği"
+        verbose_name_plural = "Kullanıcı Abonelikleri"

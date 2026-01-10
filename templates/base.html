@@ -81,18 +81,28 @@
                 </a>
                 {% endif %}
 
-                <!-- 4. DANIŞAN MENÜSÜ (Müzikler) -->
+                <!-- 4. DANIŞAN MENÜSÜ (Müzikler ve Bilgi) -->
                 {% if not user.is_psychologist and not user.is_superuser %}
+                <a href="{% url 'frequency_info' %}"
+                    class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
+                    <i class="fas fa-wave-square"></i> <span class="hidden md:inline">Frekans Nedir?</span>
+                </a>
                 <a href="{% url 'music_library' %}"
                     class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
                     <i class="fas fa-music"></i> <span class="hidden md:inline">Müzikler</span>
                 </a>
                 {% endif %}
 
-                <!-- Kullanıcı Bilgisi -->
+                <!-- Kullanıcı Bilgisi & Profil Linki -->
                 <div class="hidden md:flex items-center gap-2 ml-2 pl-2 border-l border-white/20">
-                    <i class="fas fa-user-circle text-violet-300"></i>
-                    <span class="font-medium opacity-90">{{ user.username }}</span>
+                    <a href="{% url 'profile_view' %}" class="flex items-center gap-2 group cursor-pointer"
+                        title="Profili Düzenle">
+                        <i class="fas fa-user-circle text-violet-300 group-hover:text-white transition"></i>
+                        <span class="font-medium opacity-90 group-hover:text-white transition">
+                            {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username
+                            }}{% endif %}
+                        </span>
+                    </a>
                 </div>
 
                 <!-- Çıkış -->
@@ -117,9 +127,71 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer
-        class="bg-[#32064C] text-center p-3 text-stone-400 text-xs md:text-sm mt-auto border-t border-stone-600 relative z-10 w-full">
-        &copy; 2025 NeuroSound Terapi Platformu
+    <footer class="bg-[#2a0540] text-stone-400 text-sm mt-auto border-t border-white/10 relative z-10 w-full">
+        <div class="container mx-auto px-6 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+
+                <!-- Logo ve açıklama -->
+                <div>
+                    <h3
+                        class="text-white font-bold text-lg mb-4 flex items-center justify-center md:justify-start gap-2">
+                        <i class="fas fa-brain text-violet-400"></i> NeuroSound
+                    </h3>
+                    <p class="text-xs leading-relaxed max-w-xs mx-auto md:mx-0">
+                        Ses frekansları ile zihinsel performansınızı artırın, rahatlayın ve odaklanın.
+                        Bilimin ve müziğin gücü bir arada.
+                    </p>
+                </div>
+
+                <!-- Hızlı Linkler -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4 md:pl-2">Hızlı Erişim</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="/"
+                                class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-home text-violet-500/70 w-6 text-center"></i> Anasayfa</a></li>
+                        <li><a href="{% url 'frequency_info' %}"
+                                class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-wave-square text-violet-500/70 w-6 text-center"></i> Frekanslar
+                                Hakkında</a></li>
+                        <li><a href="{% url 'profile_view' %}"
+                                class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-user text-violet-500/70 w-6 text-center"></i> Profilim</a></li>
+                        <li><a href="{% url 'contact' %}"
+                                class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-envelope text-violet-500/70 w-6 text-center"></i> İletişim</a></li>
+                    </ul>
+                </div>
+
+                <!-- Yasal -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4 md:pl-2">Yasal</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="{% url 'kvkk' %}"
+                                class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-scale-balanced text-emerald-500/70 w-6 text-center"></i> KVKK
+                                Aydınlatma Metni</a>
+                        </li>
+                        <li><a href="{% url 'terms' %}"
+                                class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-file-contract text-emerald-500/70 w-6 text-center"></i> Kullanıcı
+                                Sözleşmesi</a></li>
+                        <li><a href="{% url 'privacy' %}"
+                                class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-user-shield text-emerald-500/70 w-6 text-center"></i> Gizlilik
+                                Politikası</a></li>
+                        <li><a href="{% url 'cookie_policy' %}"
+                                class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i
+                                    class="fas fa-cookie-bite text-emerald-500/70 w-6 text-center"></i> Çerez
+                                Politikası</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-white/5 mt-10 pt-6 text-center text-xs text-stone-500">
+                &copy; {% now "Y" %} NeuroSound Terapi Platformu. Tüm hakları saklıdır.
+            </div>
+        </div>
     </footer>
 
     <!-- Çerez Bildirimi (Cookie Banner) -->

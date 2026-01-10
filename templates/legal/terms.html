@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen py-16 px-4 md:px-8">
+    <div class="max-w-4xl mx-auto glass-card p-8 md:p-12 rounded-3xl">
+        <h1 class="text-3xl font-bold text-white mb-8 border-b border-white/10 pb-4">
+            Kullanıcı Sözleşmesi
+        </h1>
+
+        <div class="space-y-6 text-stone-300 leading-relaxed text-sm md:text-base">
+            <p>
+                Bu sözleşme, NeuroSound Terapi Platformu ("Platform") ile kullanıcı ("Kullanıcı") arasında,
+                Kullanıcı'nın Platform'a üye olması ve sunulan hizmetlerden yararlanması koşullarını düzenlemektedir.
+            </p>
+
+            <h3 class="text-xl font-bold text-white mt-8 mb-2">1. Taraflar</h3>
+            <p>
+                İşbu sözleşme, NeuroSound yetkilileri ile siteye üye olan Kullanıcı arasında akdedilmiştir.
+            </p>
+
+            <h3 class="text-xl font-bold text-white mt-8 mb-2">2. Hizmetin Tanımı</h3>
+            <p>
+                NeuroSound, kullanıcılara ses frekansları aracılığıyla rahatlama, odaklanma ve uyku desteği sağlayan
+                dijital bir platformdur.
+                Bu hizmet tıbbi bir tedavi niteliği taşımamakta olup, destekleyici bir araçtır. Tıbbi sorunlarınız için
+                lütfen bir hekime başvurunuz.
+            </p>
+
+            <h3 class="text-xl font-bold text-white mt-8 mb-2">3. Kullanım Koşulları</h3>
+            <ul class="list-disc pl-5 space-y-2">
+                <li>Kullanıcı, üyelik bilgilerini doğru ve eksiksiz girmekle yükümlüdür.</li>
+                <li>Platform üzerindeki içerikler (ses dosyaları, metinler vb.) izinsiz kopyalanamaz ve dağıtılamaz.
+                </li>
+                <li>Hesap güvenliğinden Kullanıcı sorumludur.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-white mt-8 mb-2">4. İptal ve İade</h3>
+            <p>
+                Dijital içerik hizmeti sunulduğundan, satın alınan aboneliklerde cayma hakkı kullanımı
+                Mesafeli Sözleşmeler Yönetmeliği uyarınca, hizmetin ifasına başlanmış olması durumunda geçerli değildir.
+                Ancak memnuniyetsizlik durumlarında bizimle iletişime geçebilirsiniz.
+            </p>
+        </div>
+
+        <div class="mt-12 text-center">
+            <a href="/" class="px-6 py-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-bold transition">
+                <i class="fas fa-arrow-left mr-2"></i> Anasayfaya Dön
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

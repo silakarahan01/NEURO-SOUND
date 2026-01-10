@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
-from .forms import UserLoginForm, UserRegistrationForm
+from .forms import UserLoginForm, UserRegistrationForm, UserProfileForm
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.utils import timezone
-from .models import User, Prescription, ListeningLog
+from .models import User, Prescription, ListeningLog, SubscriptionPlan, UserSubscription
 from django.db.models import Sum, Count
 import json
 from django.core.mail import send_mail
@@ -87,6 +88,50 @@ def register_view(request):
         form = UserRegistrationForm()
 
     return render(request, 'accounts/register.html', {'form': form})
+
+@login_required
+def profile_view(request):
+    user_form = UserProfileForm(instance=request.user)
+    password_form = PasswordChangeForm(request.user)
+    
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            user_form = UserProfileForm(request.POST, instance=request.user)
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Profil bilgileriniz güncellendi.')
+                return redirect('profile_view')
+        
+        elif 'change_password' in request.POST:
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)  # Kullanıcının oturumunu açık tut
+                messages.success(request, 'Şifreniz başarıyla değiştirildi.')
+                return redirect('profile_view')
+            else:
+                 messages.error(request, 'Şifre değiştirme hatası. Lütfen bilgileri kontrol edin.')
+
+    
+    # Abonelik Bilgisi
+    formatted_start = "-"
+    formatted_end = "-"
+    try:
+        subscription = request.user.subscriptions.latest('created_at')
+        if subscription.start_date:
+            formatted_start = subscription.start_date.strftime('%d.%m.%Y')
+        if subscription.end_date:
+            formatted_end = subscription.end_date.strftime('%d.%m.%Y')
+    except:
+        subscription = None
+
+    return render(request, 'dashboard/profile.html', {
+        'user_form': user_form,
+        'password_form': password_form,
+        'subscription': subscription,
+        'formatted_start': formatted_start,
+        'formatted_end': formatted_end
+    })
 
 def logout_view(request):
     logout(request)
@@ -306,9 +351,22 @@ def psychologist_dashboard(request):
             
         return redirect('psychologist_dashboard')
 
+    # Abonelik Durumu
+    subscription = UserSubscription.objects.filter(user=request.user, is_active=True).first()
+    days_left = None
+    if subscription:
+        delta = subscription.end_date - timezone.now().date()
+        days_left = delta.days
+        if days_left < 0:
+            subscription.is_active = False
+            subscription.save()
+            days_left = 0
+
     return render(request, 'dashboard/psychologist_dashboard.html', {
         'patients': patients,
-        'prescriptions': prescriptions
+        'prescriptions': prescriptions,
+        'subscription': subscription,
+        'days_left': days_left
     })
 
 # Reçete Silme Fonksiyonu
@@ -409,18 +467,62 @@ def patient_dashboard(request):
     if request.user.is_superuser:
         return redirect('super_admin_dashboard')
     
-    # Tüm reçeteleri getir (Seçim için)
-    all_prescriptions = Prescription.objects.filter(patient=request.user).order_by('-created_at')
     
-    # URL'den veya varsayılan olarak reçete seç
-    selected_pres_id = request.GET.get('pres_id')
-    prescription = None
+    # INDIVIDUAL USERS: Sanal Reçete ve Frekans Listesi
+    is_individual = getattr(request.user, 'is_individual', False)
+    standard_frequencies = []
     
-    if selected_pres_id:
-        prescription = all_prescriptions.filter(id=selected_pres_id).first()
+    if is_individual:
+        standard_frequencies = [
+            {'value': 'Delta', 'label': 'Delta', 'desc': '0.5-4Hz (Uyku & Derin Rahatlama)', 'icon': 'fa-bed', 'color_cls': 'violet'},
+            {'value': 'Theta', 'label': 'Theta', 'desc': '4-8Hz (Meditasyon & Yaratıcılık)', 'icon': 'fa-spa', 'color_cls': 'purple'},
+            {'value': 'Alpha', 'label': 'Alpha', 'desc': '8-14Hz (Odaklanma & Öğrenme)', 'icon': 'fa-wind', 'color_cls': 'teal'},
+            {'value': 'Beta', 'label': 'Beta', 'desc': '14-30Hz (Dikkat & Problem Çözme)', 'icon': 'fa-brain', 'color_cls': 'amber'},
+            {'value': 'Gamma', 'label': 'Gamma', 'desc': '30-100Hz (Bilişsel Performans)', 'icon': 'fa-bolt', 'color_cls': 'rose'},
+        ]
+        
+        # Seçilen frekans (Varsayılan: Delta)
+        selected_freq_val = request.GET.get('freq', 'Delta')
+        selected_freq_info = next((f for f in standard_frequencies if f['value'] == selected_freq_val), standard_frequencies[0])
+        
+        # Süre (Varsayılan: 30 dk)
+        try:
+            custom_duration = int(request.GET.get('duration', 30))
+        except ValueError:
+            custom_duration = 30
+
+        # Sanal Reçete Oluştur (DB'ye kaydedilmez, sadece gösterim için)
+        prescription = Prescription(
+            patient=request.user,
+            frequency=selected_freq_info['value'],
+            duration_minutes=custom_duration, 
+            total_days=1,       # Sembolik
+            notes="Bireysel Serbest Çalışma Modu",
+            created_at=timezone.now()
+        )
+        # Kayıtlı reçete listesi boş kalabilir veya geçmiş kayıtlar olabilir
+        all_prescriptions = [] 
+
+    else:
+        # HASTA MODU: Gerçek reçeteler
+        all_prescriptions = Prescription.objects.filter(patient=request.user).order_by('-created_at')
+        
+        # URL'den veya varsayılan olarak reçete seç
+        selected_pres_id = request.GET.get('pres_id')
+        prescription = None
+        
+        if selected_pres_id:
+            prescription = all_prescriptions.filter(id=selected_pres_id).first()
+        
+        if not prescription:
+            prescription = all_prescriptions.first()
     
-    if not prescription:
-        prescription = all_prescriptions.first() # Fallback to the first prescription if none selected or found
+    # Ortak Akış Devam Ediyor...
+    if not prescription and not is_individual:
+        # Hiç reçete yoksa ve bireysel değilse yapılacak işlem (boş dönebilir)
+        pass
+
+    # Bugünün kaydı
        # Bugünün kaydı
     today = timezone.now().date()
     today_log, created = ListeningLog.objects.get_or_create(user=request.user, date=today)
@@ -434,17 +536,83 @@ def patient_dashboard(request):
     selected_music = request.GET.get('bg_music', None)
     music_title = request.GET.get('title', 'Sessiz Mod')
 
+    # Abonelik Durumu
+    subscription = UserSubscription.objects.filter(user=request.user, is_active=True).first()
+    days_left = None
+    if subscription:
+        delta = subscription.end_date - timezone.now().date()
+        days_left = delta.days
+        if days_left < 0:
+            subscription.is_active = False
+            subscription.save()
+            days_left = 0
+
     context = {
         'all_prescriptions': all_prescriptions,
+        'standard_frequencies': standard_frequencies,  # YENİ
         'prescription': prescription,
         'selected_music': selected_music,
         'music_title': music_title,
         'today_log': today_log,
         'history': history,
         'timer_start_seconds': timer_start_seconds,
-        'today_listened_seconds': today_listened_seconds
+        'today_listened_seconds': today_listened_seconds,
+        'subscription': subscription,
+        'days_left': days_left
     }
     return render(request, 'dashboard/patient_dashboard.html', context)
+
+@login_required
+def payment_view(request):
+    # Eğer kullanıcı zaten psikolog veya danışansa ona uygun planı seç
+    selected_plan_type = 'PSYCHOLOGIST' if request.user.is_psychologist else 'INDIVIDUAL'
+    
+    # İlgili planı bul veya yoksa oluştur (Fiyatlar user isteğine göre)
+    plan_price = 500.00 if request.user.is_psychologist else 50.00
+    plan, created = SubscriptionPlan.objects.get_or_create(
+        name=selected_plan_type,
+        defaults={'price': plan_price}
+    )
+
+    if request.method == 'POST':
+        # MOCK ÖDEME İŞLEMİ
+        # Gerçek hayatta burada Iyzico/Stripe entegrasyonu olur.
+        # Şuan başarılı kabul ediyoruz.
+        
+        # Mevcut abonelik var mı?
+        sub = UserSubscription.objects.filter(user=request.user).first()
+        
+        length_days = 30 # 1 aylık uzatma
+        
+        if sub:
+            # Varsa süreleri güncelle (Kullanıcı isteği: Yenileme tarihi başlangıç, +30 gün bitiş)
+            sub.start_date = timezone.now().date()
+            sub.end_date = timezone.now().date() + timedelta(days=length_days)
+            
+            sub.is_active = True
+            sub.plan = plan
+            sub.save()
+        else:
+            # Yoksa yeni oluştur
+            UserSubscription.objects.create(
+                user=request.user,
+                plan=plan,
+                start_date=timezone.now().date(),
+                end_date=timezone.now().date() + timedelta(days=length_days),
+                is_active=True
+            )
+            
+        messages.success(request, 'Ödeme başarılı! Aboneliğiniz uzatıldı.')
+        if request.user.is_psychologist:
+            return redirect('psychologist_dashboard')
+        else:
+            return redirect('patient_dashboard')
+
+    card_holder_name = request.user.get_full_name() or request.user.username
+    return render(request, 'dashboard/payment.html', {
+        'plan': plan,
+        'card_holder_name': card_holder_name
+    })
 
 
 # --- LOG KAYDETME API ---
@@ -487,3 +655,70 @@ def save_progress(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
             
     return JsonResponse({'status': 'fail'})
+
+@login_required
+def frequency_info_view(request):
+    if request.user.is_psychologist:
+        return redirect('psychologist_dashboard')
+        
+    frequencies = [
+        {
+            'name': 'Delta',
+            'range': '0.5 - 4 Hz',
+            'desc': 'En yavaş beyin dalgasıdır. Derin uyku, iyileşme ve yenilenme sırasında aktiftir.',
+            'benefits': ['Derin ve onarıcı uyku', 'Vücudun kendini iyileştirmesi', 'Bilinçdışı zihne erişim', 'Stres hormonlarının azalması'],
+            'usage': 'Uyumadan önce, derin rahatlama ihtiyacında veya fiziksel yorgunlukta.',
+            'icon': 'fa-bed',
+            'color': 'indigo'
+        },
+        {
+            'name': 'Theta',
+            'range': '4 - 8 Hz',
+            'desc': 'Derin meditasyon, rüya görme ve yaratıcılık frekansıdır. Bilinçaltı ile bağlantı kurar.',
+            'benefits': ['Yaratıcılık ve sezgi artışı', 'Duygusal iyileşme', 'Derin meditasyon durumu', 'Hafıza güçlendirme'],
+            'usage': 'Yaratıcı çalışmalar öncesinde, meditasyon yaparken veya duygusal denge arayışında.',
+            'icon': 'fa-spa',
+            'color': 'purple'
+        },
+        {
+            'name': 'Alpha',
+            'range': '8 - 14 Hz',
+            'desc': 'Rahat ama uyanık olduğumuz durumdur. Sakinlik ve odaklanma arasındaki köprüdür.',
+            'benefits': ['Stres ve kaygı azalması', 'Pozitif düşünce', 'Hızlı öğrenme', 'Zihinsel berraklık'],
+            'usage': 'Ders çalışırken, kitap okurken veya hafif bir mola verirken.',
+            'icon': 'fa-wind',
+            'color': 'teal'
+        },
+        {
+            'name': 'Beta',
+            'range': '14 - 30 Hz',
+            'desc': 'Normal uyanıklık durumudur. , problem çözme ve aktif düşünme sırasında baskındır.',
+            'benefits': ['Dikkat ve konsantrasyon', 'Analitik düşünme', 'Enerji artışı', 'Karar verme becerisi'],
+            'usage': 'Yoğun iş temposunda, dikkat gerektiren görevlerde veya güne başlarken.',
+            'icon': 'fa-brain',
+            'color': 'amber'
+        },
+        {
+            'name': 'Gamma',
+            'range': '30 - 100 Hz',
+            'desc': 'En hızlı beyin dalgasıdır. Üst düzey bilişsel işleme ve algılamayla ilişkilidir.',
+            'benefits': ['Bilişsel performans zirvesi', 'Hızlı bilgi işleme', 'Hafıza ve dikkat artışı', 'Farkındalık (Mindfulness)'],
+            'usage': 'Zorlu zihinsel görevlerde, yüksek odaklanma gerektiğinde.',
+            'icon': 'fa-bolt',
+            'color': 'rose'
+        }
+    ]
+    
+    return render(request, 'frequency_info.html', {'frequencies': frequencies})
+
+def kvkk_view(request):
+    return render(request, 'legal/kvkk.html')
+
+def terms_view(request):
+    return render(request, 'legal/terms.html')
+
+def privacy_view(request):
+    return render(request, 'legal/privacy.html')
+
+def contact_view(request):
+    return render(request, 'contact.html')

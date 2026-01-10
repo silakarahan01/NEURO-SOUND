@@ -111,6 +111,30 @@
         </div>
         {% endif %}
 
+        <!-- Abonelik Durum Kartı (Sadece Aktif Değilse Göster) -->
+        {% if not subscription %}
+        <div class="glass-card p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-red-500">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center bg-red-500/20 text-red-400">
+                    <i class="fas fa-crown text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-lg">
+                        Abonelik Süresi Doldu
+                    </h3>
+                    <p class="text-xs text-stone-400">
+                        Hizmetlere erişmek için lütfen aboneliğinizi yenileyin.
+                    </p>
+                </div>
+            </div>
+            <a href="{% url 'payment_view' %}"
+                class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all transform hover:scale-105 shadow-lg flex items-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 text-white animate-pulse">
+                <i class="fas fa-credit-card"></i>
+                Yenile
+            </a>
+        </div>
+        {% endif %}
+
         <!-- Üst Kısım: Reçete Oluşturma Formu -->
         <div class="glass-card p-6 sm:p-8 lg:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
 
