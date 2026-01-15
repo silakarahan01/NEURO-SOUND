@@ -86,6 +86,3 @@ Tarayıcınızda `http://127.0.0.1:8000/` adresine giderek projeyi görüntüley
 4.  Branch'inizi pushlayın (`git push origin feature/YeniOzellik`).
 5.  Pull Request oluşturun.
 
-## 📄 Lisans
-
-Bu proje [MIT Lisansı](LICENSE) ile lisanslanmıştır.
