@@ -1,0 +1,21 @@
+[flake8]
+max-line-length = 100
+extend-ignore =
+    E203,  # Whitespace before ':' — black ile çakışır
+    W503,  # Line break before binary operator — black ile çakışır
+    E501,  # Line too long — black halleder
+exclude =
+    .git,
+    __pycache__,
+    main/migrations,
+    staticfiles,
+    media,
+    venv,
+    .venv,
+    build,
+    dist
+per-file-ignores =
+    # Django settings — yıldız import ve uzun satırlar tolere edilebilir
+    neuro_core/settings.py:E402,F401,F403,F405
+    # __init__.py'lerde re-export için F401 (unused import) tolere edilir
+    */__init__.py:F401

@@ -1,0 +1,384 @@
+/* ========================================================
+   NEUROSOUND - Global Stylesheet
+   Ana uygulama (herkese açık sayfalar, auth, dashboard)
+   ======================================================== */
+
+/* --- Arka Plan & Body --- */
+body {
+    background-image: url('../images/stars-night.avif');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+/* --- Glass Efektleri --- */
+.content-glass {
+    background: rgba(20, 20, 20, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glassmorphism {
+    background: rgba(23, 23, 23, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-card {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-form {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- Auth Sayfaları (Giriş / Kayıt / Şifre Sıfırlama) --- */
+.input-glow:focus {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.role-radio:checked + div {
+    border-color: #8b5cf6;
+    background-color: rgba(139, 92, 246, 0.2);
+    color: white;
+}
+
+.tooltip {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.show-tooltip .tooltip,
+.has-tooltip:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.validation-item {
+    transition: all 0.3s ease;
+}
+
+.validation-item.valid {
+    color: #10b981;
+}
+
+.validation-item.invalid {
+    color: #ef4444;
+}
+
+/* --- Animasyonlar --- */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-15px); }
+}
+
+.float-animation {
+    animation: float 8s ease-in-out infinite;
+}
+
+.float-icon {
+    animation: float 5s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(1.1); }
+}
+
+@keyframes pulse-slower {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(1.15); }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 8s ease-in-out infinite;
+}
+
+.animate-pulse-slower {
+    animation: pulse-slower 10s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(16, 185, 129, 0.5);
+        transform: scale(1.05);
+    }
+}
+
+.pulse-animation {
+    animation: pulse-glow 3s infinite;
+}
+
+@keyframes modalPop {
+    0%   { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1);   opacity: 1; }
+}
+
+.modal-content {
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* --- Landing Sayfası --- */
+.premium-card {
+    background: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 2.5rem;
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.5s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-card:hover {
+    background: rgba(30, 30, 30, 0.7);
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(139, 92, 246, 0.2);
+}
+
+.bg-size-200 { background-size: 200%; }
+.bg-pos-0    { background-position: 0%; }
+.bg-pos-100  { background-position: 100%; }
+
+/* --- Dashboard Özel Stilleri --- */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.5);
+}
+
+.input-dark {
+    background-color: rgba(41, 37, 36, 0.5);
+    border-color: rgba(68, 64, 60, 1);
+    color: white;
+}
+
+.input-dark:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.freq-option {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.freq-option:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.freq-option.selected {
+    background-color: rgba(139, 92, 246, 0.15);
+    border-color: #8b5cf6;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+    transform: translateY(0);
+}
+
+.freq-option.selected i.main-icon {
+    color: #a78bfa;
+    transform: scale(1.1);
+}
+
+.check-icon {
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s;
+}
+
+.freq-option.selected .check-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.table-row-hover:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* --- Frekans Bilgi Sayfası --- */
+.freq-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.freq-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
+}
+
+.freq-icon-wrapper {
+    transition: all 0.4s ease;
+}
+
+.freq-card:hover .freq-icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 3rem;
+    }
+}
+
+/* ========================================================
+   Reusable UI: Spinner / Skeleton / Modal / Field States
+   ======================================================== */
+
+/* --- Spinner --- */
+.spinner {
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    border-top-color: #a78bfa; /* violet-400 */
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+.spinner-lg {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 3px;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- Skeleton Loading --- */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(120, 120, 130, 0.12) 0%,
+        rgba(160, 160, 180, 0.22) 50%,
+        rgba(120, 120, 130, 0.12) 100%
+    );
+    background-size: 200% 100%;
+    border-radius: 6px;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* --- Modal --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+.modal-overlay.hidden {
+    display: none;
+}
+.modal-dialog {
+    width: 100%;
+    max-width: 28rem;
+    background: rgba(28, 28, 36, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 1rem;
+    padding: 1.75rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* --- Form Field States --- */
+.field-error {
+    color: #fca5a5; /* red-300 */
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+    display: block;
+    line-height: 1.4;
+}
+input.has-error,
+select.has-error,
+textarea.has-error {
+    border-color: #ef4444 !important; /* red-500 */
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35) !important;
+}
+input.has-success,
+select.has-success,
+textarea.has-success {
+    border-color: #10b981 !important; /* emerald-500 */
+}
+.field-help {
+    color: rgba(231, 229, 228, 0.55); /* stone-200/55 */
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+}
+
+/* ========================================================
+   Social Icons — Marka Rengi Hover
+   ======================================================== */
+.social-ig:hover {
+    /* Instagram resmi degrade */
+    background: radial-gradient(circle at 30% 107%,
+        #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+    box-shadow: 0 4px 18px rgba(214, 36, 159, 0.45);
+    transform: translateY(-2px);
+}
+
+.social-li:hover {
+    /* LinkedIn marka mavisi (#0A66C2) */
+    background: #0A66C2;
+    box-shadow: 0 4px 18px rgba(10, 102, 194, 0.45);
+    transform: translateY(-2px);
+}

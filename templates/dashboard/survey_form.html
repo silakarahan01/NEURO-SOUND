@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kişisel Değerlendirme Anketi — NeuroSound{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4">
+
+    <!-- Başlık -->
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-violet-500/20 border border-violet-500/30 mb-4">
+            <i class="fas fa-brain text-3xl text-violet-400"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-white mb-2">Kişisel Değerlendirme Anketi</h1>
+        <p class="text-stone-400 text-sm max-w-md mx-auto">
+            Aşağıdaki soruları yanıtlayarak size özel 15 günlük binaural frekans programınızı oluşturun.
+            Her soru için kaydırıcıyı hareket ettirin (1 = çok düşük / kötü, 10 = çok yüksek / iyi).
+        </p>
+    </div>
+
+    <!-- Form kartı -->
+    <div class="glass-card rounded-3xl p-8">
+        <form method="post" id="survey-form" class="space-y-8">
+            {% csrf_token %}
+
+            {% for item in survey_fields %}
+            <div>
+                <!-- Etiket + canlı değer -->
+                <div class="flex items-center justify-between mb-1">
+                    <label for="{{ item.field.id_for_label }}"
+                           class="text-sm font-semibold text-white">
+                        {{ item.label }}
+                    </label>
+                    <span id="val_{{ item.field.html_name }}"
+                          class="text-xl font-bold text-violet-400 w-8 text-right tabular-nums">5</span>
+                </div>
+
+                <!-- İpucu -->
+                <p class="text-xs text-stone-500 mb-3">{{ item.hint }}</p>
+
+                <!-- Range slider -->
+                {{ item.field }}
+
+                <!-- Ölçek etiketi -->
+                <div class="flex justify-between text-[10px] text-stone-600 mt-1 px-0.5">
+                    <span>1 — Çok düşük</span>
+                    <span>5 — Orta</span>
+                    <span>10 — Çok yüksek</span>
+                </div>
+
+                <!-- Alan hata mesajı -->
+                {% for error in item.field.errors %}
+                <p class="text-red-400 text-xs mt-1"><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <!-- Form geneli hatalar -->
+            {% if form.non_field_errors %}
+            <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                {% for error in form.non_field_errors %}
+                <p class="text-red-400 text-sm">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Gönder butonu -->
+            <button type="submit"
+                    id="submit-btn"
+                    class="w-full py-4 rounded-2xl font-bold text-white text-base transition-all
+                           bg-gradient-to-r from-violet-500 to-purple-600
+                           hover:from-violet-600 hover:to-purple-700
+                           active:scale-95 flex items-center justify-center gap-3">
+                <i class="fas fa-magic"></i>
+                Programımı Oluştur
+                <i class="fas fa-arrow-right text-sm opacity-70"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Geri dön -->
+    <div class="text-center mt-6">
+        <a href="{% url 'patient_dashboard' %}"
+           class="text-stone-500 hover:text-stone-300 text-sm transition-colors">
+            <i class="fas fa-chevron-left mr-1"></i> Panele Dön
+        </a>
+    </div>
+</div>
+
+<script>
+(function () {
+    // Range slider canlı değer gösterimi
+    document.querySelectorAll('input[type="range"]').forEach(function (input) {
+        var display = document.getElementById('val_' + input.name);
+        if (display) {
+            display.textContent = input.value;
+            input.addEventListener('input', function () {
+                display.textContent = this.value;
+            });
+        }
+    });
+
+    // Gönder — loading state
+    document.getElementById('survey-form').addEventListener('submit', function () {
+        var btn = document.getElementById('submit-btn');
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Hesaplanıyor...';
+            btn.disabled = true;
+        }
+    });
+})();
+</script>
+{% endblock %}

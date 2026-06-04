@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen py-16 px-4 md:px-8">
+    <div class="max-w-5xl mx-auto glass-card p-8 md:p-12 rounded-3xl">
+        <h1 class="text-3xl font-bold text-white mb-8 border-b border-white/10 pb-4">
+            İletişim
+        </h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <!-- İletişim Bilgileri -->
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-xl font-bold text-violet-300 mb-4">Bize Ulaşın</h3>
+                    <p class="text-stone-300 leading-relaxed">
+                        Her türlü soru, görüş ve öneriniz için bizimle iletişime geçebilirsiniz.
+                        Ekibimiz en kısa sürede size dönüş yapacaktır.
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- E-posta -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center text-violet-400 shrink-0">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm text-stone-500 font-bold uppercase mb-1">E-posta</span>
+                            <a href="mailto:sila.karahan3401@gmail.com"
+                                class="text-white hover:text-violet-300 transition text-sm">
+                                sila.karahan3401@gmail.com
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Merkez Ofis -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center text-violet-400 shrink-0">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm text-stone-500 font-bold uppercase mb-1">Merkez Ofis</span>
+                            <p class="text-white text-sm leading-relaxed">
+                                Zafer Mahallesi, Centilmen Sokak<br>
+                                No:49, Daire 11<br>
+                                Bahçelievler / İstanbul
+                            </p>
+                            <a href="tel:+905558975701"
+                                class="inline-flex items-center gap-2 text-stone-400 hover:text-white transition text-sm mt-2">
+                                <i class="fas fa-phone text-violet-400"></i> 0555 897 57 01
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Altunizade Şubesi -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-stone-800 flex items-center justify-center text-violet-400 shrink-0">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm text-stone-500 font-bold uppercase mb-1">Altunizade Şubesi</span>
+                            <p class="text-white text-sm leading-relaxed">
+                                Kuşbakışı Caddesi No:2<br>
+                                34662 Üsküdar / İstanbul
+                            </p>
+                            <a href="tel:+908504747475"
+                                class="inline-flex items-center gap-2 text-stone-400 hover:text-white transition text-sm mt-2">
+                                <i class="fas fa-phone text-violet-400"></i> 0850 474 74 75
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İletişim Formu -->
+            <div class="bg-stone-800/30 p-6 rounded-2xl border border-white/5">
+
+                {% if messages %}
+                <div class="mb-4 space-y-2">
+                    {% for message in messages %}
+                    <div class="p-3 rounded-xl text-sm border
+                        {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-400
+                        {% else %}bg-red-500/10 border-red-500/30 text-red-400{% endif %}
+                        flex items-center gap-2">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'contact' %}" class="space-y-4" id="contact-form">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-stone-400 text-xs font-bold mb-2 ml-1">AD SOYAD</label>
+                        <input type="text" name="name" required
+                            class="w-full bg-stone-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-stone-400 text-xs font-bold mb-2 ml-1">E-POSTA</label>
+                        <input type="email" name="email" required
+                            class="w-full bg-stone-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-stone-400 text-xs font-bold mb-2 ml-1">MESAJINIZ</label>
+                        <textarea name="message" rows="5" maxlength="500" required
+                            class="w-full bg-stone-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-colors resize-none h-32"></textarea>
+                    </div>
+
+                    <!-- Kişisel Veri Onay Checkbox -->
+                    <div class="flex items-start gap-3 bg-stone-900/40 border border-white/10 rounded-xl p-4">
+                        <input type="checkbox" id="data-consent" name="data_consent"
+                            class="mt-0.5 w-4 h-4 accent-violet-500 cursor-pointer shrink-0">
+                        <label for="data-consent" class="text-stone-400 text-xs leading-relaxed cursor-pointer">
+                            Tarafıma iletilen ad, soyad ve e-posta bilgilerimin yalnızca bu talebe yanıt vermek amacıyla
+                            <a href="{% url 'kvkk' %}" class="text-violet-400 hover:text-violet-300 underline underline-offset-2" target="_blank">KVKK</a>
+                            kapsamında saklanacağını ve işleneceğini kabul ediyorum.
+                            <span class="text-red-400 font-bold">*</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" id="submit-btn" disabled
+                        class="w-full py-3 rounded-xl font-bold transition shadow-lg text-white
+                               bg-stone-600 cursor-not-allowed opacity-50"
+                        title="Devam etmek için onay kutusunu işaretleyin">
+                        <i class="fas fa-paper-plane mr-2"></i> Gönder
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-12 text-center">
+            <a href="/" class="px-6 py-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-bold transition">
+                <i class="fas fa-arrow-left mr-2"></i> Ana Sayfaya Dön
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const checkbox = document.getElementById('data-consent');
+        const btn = document.getElementById('submit-btn');
+
+        function updateBtn() {
+            if (checkbox.checked) {
+                btn.disabled = false;
+                btn.classList.remove('bg-stone-600', 'cursor-not-allowed', 'opacity-50');
+                btn.classList.add('bg-violet-600', 'hover:bg-violet-700', 'shadow-violet-600/20');
+                btn.removeAttribute('title');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-stone-600', 'cursor-not-allowed', 'opacity-50');
+                btn.classList.remove('bg-violet-600', 'hover:bg-violet-700', 'shadow-violet-600/20');
+                btn.title = 'Devam etmek için onay kutusunu işaretleyin';
+            }
+        }
+
+        checkbox.addEventListener('change', updateBtn);
+    })();
+</script>
+{% endblock %}

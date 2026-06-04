@@ -1,0 +1,186 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ patient.first_name }} {{ patient.last_name }} — Detay{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Geri Dön -->
+    <a href="{% url 'admin_patients' %}" class="inline-flex items-center gap-2 text-violet-600 hover:text-violet-800 transition text-sm font-medium">
+        <i class="fas fa-arrow-left"></i> Danışanlara Dön
+    </a>
+
+    <!-- Hasta Başlık Kartı -->
+    <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-violet-100/40 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="flex items-center gap-4 relative z-10">
+            <div class="w-16 h-16 rounded-full bg-violet-100 flex items-center justify-center text-2xl text-violet-600 font-bold border-2 border-violet-200 shrink-0">
+                {{ patient.first_name|first }}{{ patient.last_name|first }}
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold">{{ patient.first_name }} {{ patient.last_name }}</h2>
+                <p class="text-gray-500 text-sm">@{{ patient.username }} · {{ patient.email }}</p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    {% if patient.assigned_psychologist %}
+                    <span class="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded border border-violet-200">
+                        <i class="fas fa-user-md mr-1"></i>Dr. {{ patient.assigned_psychologist.first_name }} {{ patient.assigned_psychologist.last_name }}
+                    </span>
+                    {% else %}
+                    <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded border border-red-200">Psikolog Atanmadı</span>
+                    {% endif %}
+                    {% if patient.is_individual %}
+                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded border border-purple-200">Bireysel</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- İstatistikler -->
+        <div class="flex gap-8 relative z-10">
+            <div class="text-center">
+                <p class="text-2xl font-bold text-violet-600">{{ total_minutes }}</p>
+                <p class="text-xs text-gray-400 uppercase tracking-wider mt-0.5">Toplam dk</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-purple-600">{{ total_days_logged }}</p>
+                <p class="text-xs text-gray-400 uppercase tracking-wider mt-0.5">Giriş Günü</p>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-fuchsia-600">{{ completed_count }}</p>
+                <p class="text-xs text-gray-400 uppercase tracking-wider mt-0.5">Tamamlanan</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reçeteler + Seans Notları -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Reçeteler -->
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+            <h3 class="font-semibold mb-5 flex items-center gap-2">
+                <i class="fas fa-file-prescription text-violet-500 text-sm"></i> Reçeteler
+                <span class="text-xs text-gray-400 font-normal ml-1">({{ prescriptions|length }} adet)</span>
+            </h3>
+            {% if prescriptions %}
+            <div class="space-y-3">
+                {% for pres in prescriptions %}
+                <div class="bg-violet-50 rounded-xl border border-violet-100 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-semibold text-purple-900">{{ pres.get_frequency_display }}</span>
+                        <span class="text-xs text-gray-400">{{ pres.created_at|date:"d.m.Y" }}</span>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs text-gray-500">
+                        <span><i class="fas fa-clock mr-1 text-gray-300"></i>{{ pres.duration_minutes }} dk / {{ pres.total_days }} gün</span>
+                        {% if pres.assigned_by %}
+                        <span><i class="fas fa-user-md mr-1 text-gray-300"></i>Dr. {{ pres.assigned_by.first_name }} {{ pres.assigned_by.last_name }}</span>
+                        {% endif %}
+                    </div>
+                    {% if pres.notes %}
+                    <p class="text-xs text-gray-400 mt-2 italic">{{ pres.notes }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-file-prescription text-purple-200 text-2xl mb-2 block"></i>
+                <p class="text-gray-400 text-sm">Henüz reçete oluşturulmamış.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Seans Notları (Salt Okunur) -->
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+            <h3 class="font-semibold mb-5 flex items-center gap-2">
+                <i class="fas fa-sticky-note text-amber-400 text-sm"></i> Seans Notları
+                <span class="text-xs text-gray-400 font-normal ml-1">({{ session_notes|length }} adet)</span>
+            </h3>
+            {% if session_notes %}
+            <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                {% for note in session_notes %}
+                <div class="bg-violet-50 rounded-xl border border-violet-100 p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-violet-600 flex items-center gap-1">
+                            <i class="fas fa-calendar-alt"></i> {{ note.date|date:"d F Y" }}
+                        </span>
+                        {% if note.created_by %}
+                        <span class="text-xs text-gray-400">Dr. {{ note.created_by.first_name }} {{ note.created_by.last_name }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-gray-600 text-sm whitespace-pre-wrap">{{ note.note }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-folder-open text-purple-200 text-2xl mb-2 block"></i>
+                <p class="text-gray-400 text-sm">Henüz seans notu eklenmemiş.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Tüm Dinleme Geçmişi -->
+    <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+        <h3 class="font-semibold mb-5 flex items-center gap-2">
+            <i class="fas fa-history text-violet-500 text-sm"></i> Tüm Dinleme Geçmişi
+            <span class="text-xs text-gray-400 font-normal ml-1">({{ logs|length }} kayıt)</span>
+        </h3>
+
+        {% if logs %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="text-xs text-gray-500 uppercase bg-violet-50 border-b border-purple-100">
+                    <tr>
+                        <th class="px-4 py-3">Tarih</th>
+                        <th class="px-4 py-3">Frekans</th>
+                        <th class="px-4 py-3">Dinlenen Süre</th>
+                        <th class="px-4 py-3">Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="border-b border-purple-50 hover:bg-violet-50/50 transition">
+                        <td class="px-4 py-3 text-gray-600">{{ log.date|date:"d M Y" }}</td>
+                        <td class="px-4 py-3">
+                            {% if log.frequency %}
+                            <span class="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded border border-violet-200">{{ log.get_frequency_display }}</span>
+                            {% else %}
+                            <span class="text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-gray-500">
+                            {% if log.duration_listened >= 60 %}
+                                {{ log.duration_listened|floatformat:0 }} sn
+                                <span class="text-gray-300 text-xs ml-1">(≈ {% widthratio log.duration_listened 60 1 %} dk)</span>
+                            {% else %}
+                                {{ log.duration_listened }} sn
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if log.is_completed %}
+                            <span class="flex items-center gap-1.5 text-emerald-600 text-xs font-medium">
+                                <i class="fas fa-check-circle"></i> Tamamlandı
+                            </span>
+                            {% else %}
+                            <span class="flex items-center gap-1.5 text-amber-500 text-xs font-medium">
+                                <i class="fas fa-adjust"></i> Yarım
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-headphones text-purple-200 text-3xl mb-3 block"></i>
+            <p class="text-gray-400 text-sm">Bu danışana ait dinleme kaydı bulunmuyor.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

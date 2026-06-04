@@ -1,0 +1,62 @@
+# ─── Ortam & Güvenlik ───────────────────────────────────────────
+.env
+*.env
+.env.*
+!.env.example
+
+# ─── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Sanal Ortam ────────────────────────────────────────────────
+venv/
+env/
+.venv/
+ENV/
+
+# ─── Django ─────────────────────────────────────────────────────
+staticfiles/
+media/
+*.sqlite3
+db.sqlite3
+logs/
+
+# ─── IDE ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── İşletim Sistemi ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Node (Tailwind build için) ─────────────────────────────────
+node_modules/
+npm-debug.log*
+
+# ─── Backup ─────────────────────────────────────────────────────
+_views_legacy.py
+*.bak
+
+# ─── Akademik / Bitirme Projesi Raporları (private) ─────────────
+Bitirme_Projesi_Vize_Durum_Raporu*.docx
+### AI Tools (Claude, Cursor, etc.) ###
+.claude/
+.anthropic/
+claude_history.json
+*claude_session*
+.env
+
+# ─── ML model dosyaları (runtime'da üretilir) ───────────────────
+main/ml/models/*.pkl

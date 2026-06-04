@@ -1,0 +1,42 @@
+{% comment %}
+NEURO SOUND — Tüm transaksiyonel e-postaların ortak iskeleti.
+subject ve body block'ları doldurulur.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block subject %}NEURO SOUND{% endblock %}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1f1f29;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f4f4f7;padding:32px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+                    <!-- Üst Bant -->
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%);padding:24px 32px;color:#ffffff;">
+                            <span style="font-size:20px;font-weight:700;letter-spacing:0.5px;">NEURO SOUND</span>
+                            <div style="font-size:12px;opacity:0.85;margin-top:4px;">Zihin ve Ses Terapi Platformu</div>
+                        </td>
+                    </tr>
+                    <!-- Gövde -->
+                    <tr>
+                        <td style="padding:32px;font-size:15px;line-height:1.6;color:#1f1f29;">
+                            {% block body %}{% endblock %}
+                        </td>
+                    </tr>
+                    <!-- Alt Bant -->
+                    <tr>
+                        <td style="background:#fafafa;border-top:1px solid #ececf2;padding:18px 32px;font-size:12px;color:#7a7a85;text-align:center;">
+                            Bu otomatik bir e-postadır, lütfen yanıtlamayın. •
+                            <a href="#" style="color:#7c3aed;text-decoration:none;">İletişim</a>
+                        </td>
+                    </tr>
+                </table>
+                <div style="font-size:11px;color:#a0a0aa;margin-top:14px;">© NEURO SOUND</div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# NEURO SOUND — Geliştirme bağımlılıkları
+# Kurulum: pip install -r requirements-dev.txt
+# (Production'da kurulmasına gerek yoktur.)
+
+# Test runner ve fixture
+pytest>=7.4
+pytest-django>=4.7
+pytest-cov>=4.1
+factory-boy>=3.3
+
+# Lint & format
+black>=24.0
+flake8>=7.0
+isort>=5.13
+
+# Pre-commit
+pre-commit>=3.6

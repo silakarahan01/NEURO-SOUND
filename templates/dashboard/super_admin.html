@@ -1,0 +1,221 @@
+{% extends 'base_admin.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Başlık -->
+    <div>
+        <h2 class="text-2xl font-bold">Genel Bakış</h2>
+        <p class="text-purple-400 text-sm mt-1">Platformun anlık istatistikleri</p>
+    </div>
+
+    <!-- Stat Kartları -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-5 flex items-center gap-4">
+            <div class="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+                <i class="fas fa-users text-green-600"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-purple-900">{{ total_patients }}</p>
+                <p class="text-xs text-gray-500">Toplam Danışan</p>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-5 flex items-center gap-4">
+            <div class="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+                <i class="fas fa-user-md text-purple-600"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-purple-900">{{ total_psychologists }}</p>
+                <p class="text-xs text-gray-500">Aktif Psikolog</p>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-5 flex items-center gap-4">
+            <div class="w-11 h-11 bg-pink-100 rounded-xl flex items-center justify-center shrink-0">
+                <i class="fas fa-user-circle text-pink-600"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-purple-900">{{ total_individual }}</p>
+                <p class="text-xs text-gray-500">Bireysel Kullanıcı</p>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-5 flex items-center gap-4">
+            <div class="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+                <i class="fas fa-headphones text-blue-600"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-purple-900">{{ total_hours }}<span class="text-base font-normal text-gray-400 ml-1">sa</span></p>
+                <p class="text-xs text-gray-500">Toplam Dinleme</p>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-5 flex items-center gap-4">
+            <div class="w-11 h-11 bg-violet-100 rounded-xl flex items-center justify-center shrink-0">
+                <i class="fas fa-clipboard-list text-violet-600"></i>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-purple-900">{{ total_surveys }}</p>
+                <p class="text-xs text-gray-500">Anket Yanıtı</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Anket Frekans Dağılımı (verisi varsa) -->
+    {% if survey_freq_dist %}
+    <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <i class="fas fa-brain text-violet-500"></i> ML Öneri Dağılımı
+        </h3>
+        <div class="space-y-3">
+            {% for item in survey_freq_dist %}
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-gray-600 w-14 capitalize">{{ item.recommended_frequency }}</span>
+                <div class="flex-1 bg-gray-100 rounded-full h-2">
+                    <div class="bg-violet-500 h-2 rounded-full"
+                         style="width: {% widthratio item.count total_surveys 100 %}%"></div>
+                </div>
+                <span class="text-xs text-gray-500 w-8 text-right tabular-nums">{{ item.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Hızlı Linkler + Bekleyenler -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Hızlı Erişim -->
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                <i class="fas fa-bolt text-violet-500 text-sm"></i> Hızlı Erişim
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <a href="{% url 'admin_patients' %}"
+                    class="flex items-center gap-3 p-3 bg-violet-50 hover:bg-violet-100 border border-violet-100 hover:border-violet-300 rounded-xl transition group">
+                    <i class="fas fa-users text-violet-400 group-hover:text-violet-600 transition text-sm w-4 text-center"></i>
+                    <span class="text-gray-600 group-hover:text-purple-900 text-sm transition">Danışanlar</span>
+                </a>
+                <a href="{% url 'admin_psychologists' %}"
+                    class="flex items-center gap-3 p-3 bg-violet-50 hover:bg-violet-100 border border-violet-100 hover:border-violet-300 rounded-xl transition group">
+                    <i class="fas fa-user-md text-violet-400 group-hover:text-violet-600 transition text-sm w-4 text-center"></i>
+                    <span class="text-gray-600 group-hover:text-purple-900 text-sm transition">Psikologlar</span>
+                </a>
+                <a href="{% url 'admin_onaylar' %}"
+                    class="flex items-center gap-3 p-3 bg-violet-50 hover:bg-violet-100 border border-violet-100 hover:border-violet-300 rounded-xl transition group">
+                    <i class="fas fa-user-check text-violet-400 group-hover:text-violet-600 transition text-sm w-4 text-center"></i>
+                    <span class="text-gray-600 group-hover:text-purple-900 text-sm transition">Onaylar</span>
+                    {% if pending_count %}
+                    <span class="ml-auto text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">{{ pending_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'admin_formlar' %}"
+                    class="flex items-center gap-3 p-3 bg-violet-50 hover:bg-violet-100 border border-violet-100 hover:border-violet-300 rounded-xl transition group">
+                    <i class="fas fa-envelope text-violet-400 group-hover:text-violet-600 transition text-sm w-4 text-center"></i>
+                    <span class="text-gray-600 group-hover:text-purple-900 text-sm transition">Formlar</span>
+                    {% if unread_count %}
+                    <span class="ml-auto text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+
+        <!-- Bekleyen Durum -->
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+                <i class="fas fa-clock text-violet-500 text-sm"></i> Bekleyenler
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-violet-50 rounded-xl border border-violet-100">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-user-clock text-violet-500 text-sm"></i>
+                        <span class="text-gray-600 text-sm">Onay bekleyen psikolog</span>
+                    </div>
+                    <span class="{% if pending_count %}text-red-500 font-bold{% else %}text-gray-400{% endif %} text-sm">
+                        {{ pending_count }}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-violet-50 rounded-xl border border-violet-100">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-envelope-open text-violet-500 text-sm"></i>
+                        <span class="text-gray-600 text-sm">Okunmamış form mesajı</span>
+                    </div>
+                    <span class="{% if unread_count %}text-red-500 font-bold{% else %}text-gray-400{% endif %} text-sm">
+                        {{ unread_count }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- En Çok Dinlenen Frekanslar + Müzik -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Top Frekanslar -->
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+            <h3 class="font-semibold mb-5 flex items-center gap-2">
+                <i class="fas fa-wave-square text-violet-500 text-sm"></i> En Çok Dinlenen Frekanslar
+            </h3>
+            {% if top_frequencies %}
+            <div class="space-y-3">
+                {% for f in top_frequencies %}
+                {% with max_count=top_frequencies.0.session_count %}
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-gray-700 text-sm font-medium">{{ f.frequency }}</span>
+                        <div class="flex items-center gap-3 text-xs text-gray-400">
+                            <span>{{ f.session_count }} seans</span>
+                            <span class="text-gray-300">·</span>
+                            <span>{{ f.total_minutes }} dk</span>
+                        </div>
+                    </div>
+                    <div class="h-1.5 bg-purple-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full transition-all"
+                            style="width: {% widthratio f.session_count max_count 100 %}%"></div>
+                    </div>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-chart-bar text-purple-200 text-3xl mb-3 block"></i>
+                <p class="text-gray-400 text-sm">Henüz dinleme verisi bulunmuyor.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Müzik Kütüphanesi -->
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+            <h3 class="font-semibold mb-5 flex items-center gap-2">
+                <i class="fas fa-music text-violet-500 text-sm"></i> Müzik Kütüphanesi
+            </h3>
+            <div class="space-y-3">
+                {% for track in music_tracks %}
+                <div class="flex items-center gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100">
+                    <div class="w-9 h-9 bg-{{ track.color }}-100 rounded-lg flex items-center justify-center shrink-0 border border-{{ track.color }}-200">
+                        <i class="fas {{ track.icon }} text-{{ track.color }}-600 text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-gray-700 text-sm block">{{ track.title }}</span>
+                        {% if track.description %}<span class="text-gray-400 text-xs">{{ track.description }}</span>{% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-6">
+                    <i class="fas fa-music text-purple-200 text-2xl mb-2 block"></i>
+                    <p class="text-gray-400 text-sm">Henüz müzik parçası eklenmemiş.</p>
+                    <a href="{% url 'admin_muzik' %}" class="text-violet-500 text-xs hover:text-violet-700 transition mt-1 inline-block">Müzik Yönetimine Git →</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+# NEURO SOUND — Tooling konfigürasyonu (black, isort, pytest)
+# Bu dosya paketleme yapmıyor, yalnızca araç ayarlarını barındırır.
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+extend-exclude = '''
+/(
+    main/migrations
+  | staticfiles
+  | media
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_django = ["django"]
+known_first_party = ["main", "neuro_core"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+skip = ["main/migrations"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "neuro_core.settings"
+python_files = ["tests.py", "test_*.py", "*_test.py"]
+testpaths = ["main"]
+addopts = "-v --strict-markers --reuse-db"
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests requiring DB or network",
+]
+
+[tool.coverage.run]
+source = ["main"]
+omit = [
+    "main/migrations/*",
+    "main/tests*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+skip_covered = false

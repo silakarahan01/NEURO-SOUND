@@ -1,0 +1,17 @@
+# NEURO SOUND — Python Bağımlılıkları
+# Kurulum: pip install -r requirements.txt
+# Geliştirme araçları için: pip install -r requirements-dev.txt
+
+Django>=4.2,<5.0
+mysqlclient>=2.1.0
+python-decouple>=3.8
+django-ratelimit>=4.1.0
+Pillow>=10.0.0
+
+# ─── Production WSGI / static dosya servisi ─────────────────────
+gunicorn>=21.2
+whitenoise>=6.6
+
+# ─── Makine Öğrenmesi (frekans öneri motoru) ─────────────────────
+scikit-learn>=1.4.0
+numpy>=1.26.0

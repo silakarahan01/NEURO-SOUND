@@ -1,0 +1,251 @@
+{% extends 'base_admin.html' %}
+{% block title %}Müzik Yönetimi{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8">
+
+    <!-- Başlık -->
+    <div>
+        <h2 class="text-2xl font-bold flex items-center gap-3">
+            <div class="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-music text-violet-600 text-sm"></i>
+            </div>
+            Müzik Kütüphanesi Yönetimi
+        </h2>
+        <p class="text-gray-500 text-sm mt-1 ml-12">Yeni parça ekleyin veya mevcut parçaları düzenleyin.</p>
+    </div>
+
+    <!-- Yeni Parça Ekle Formu -->
+    <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6">
+        <h3 class="font-semibold mb-5 flex items-center gap-2">
+            <i class="fas fa-plus-circle text-violet-500 text-sm"></i> Yeni Parça Ekle
+        </h3>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Başlık -->
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Başlık <span class="text-red-400">*</span></label>
+                    <input type="text" name="title" required placeholder="Ör: Yağmur Sesi"
+                        class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition placeholder-gray-300">
+                </div>
+
+                <!-- Açıklama -->
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Açıklama</label>
+                    <input type="text" name="description" placeholder="Ör: Hafif yağmur ve gök gürültüsü"
+                        class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition placeholder-gray-300">
+                </div>
+
+                <!-- İkon -->
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">İkon</label>
+                    <select name="icon"
+                        class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                        {% for val, label in icon_choices %}
+                        <option value="{{ val }}">{{ label }} ({{ val }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Renk -->
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Kart Rengi</label>
+                    <select name="color"
+                        class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                        {% for val, label in color_choices %}
+                        <option value="{{ val }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sıra -->
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Sıra (0 = ilk)</label>
+                    <input type="number" name="order" value="0" min="0"
+                        class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                </div>
+
+                <!-- Ses Dosyası -->
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5 font-medium">Ses Dosyası (.mp3, .ogg, .wav) <span class="text-red-400">*</span></label>
+                    <input type="file" name="audio_file" accept="audio/*" required
+                        class="w-full bg-white border border-purple-200 text-gray-600 text-sm rounded-lg px-3 py-2 outline-none focus:border-violet-500 transition file:bg-violet-600 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1 file:text-xs file:mr-3 file:cursor-pointer">
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button type="submit"
+                    class="bg-violet-600 hover:bg-violet-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition shadow-sm flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Ekle
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Mevcut Parçalar -->
+    <div>
+        <h3 class="font-semibold mb-4 flex items-center gap-2">
+            <i class="fas fa-list text-violet-500 text-sm"></i>
+            Mevcut Parçalar
+            <span class="text-xs text-gray-400 font-normal ml-1">({{ tracks|length }} parça)</span>
+        </h3>
+
+        {% if tracks %}
+        <div class="space-y-3">
+            {% for track in tracks %}
+            <div class="bg-white shadow-sm border border-purple-100 rounded-2xl overflow-hidden hover:shadow-md hover:border-violet-200 transition" id="track-{{ track.id }}">
+
+                <!-- Parça Satırı -->
+                <div class="p-4 flex items-center gap-4 flex-wrap sm:flex-nowrap">
+
+                    <!-- İkon önizleme -->
+                    <div class="w-11 h-11 bg-{{ track.color }}-100 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-{{ track.color }}-200">
+                        <i class="fas {{ track.icon }} text-{{ track.color }}-600 text-sm"></i>
+                    </div>
+
+                    <!-- Bilgiler -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-purple-900 font-semibold text-sm">{{ track.title }}</span>
+                            {% if not track.is_active %}
+                            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full border border-gray-200">Pasif</span>
+                            {% endif %}
+                            <span class="text-xs text-gray-400">Sıra: {{ track.order }}</span>
+                        </div>
+                        {% if track.description %}
+                        <p class="text-xs text-gray-400 mt-0.5 truncate">{{ track.description }}</p>
+                        {% endif %}
+                        <p class="text-[10px] text-gray-300 mt-0.5 truncate">{{ track.audio_file.name }}</p>
+                    </div>
+
+                    <!-- Butonlar -->
+                    <div class="flex items-center gap-2 shrink-0">
+                        <!-- Düzenle -->
+                        <button onclick="toggleEdit({{ track.id }})"
+                            class="bg-violet-50 hover:bg-violet-100 text-violet-600 border border-violet-200 px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5">
+                            <i class="fas fa-pen"></i> Düzenle
+                        </button>
+
+                        <!-- Aktif/Pasif Toggle -->
+                        <form method="POST" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle">
+                            <input type="hidden" name="track_id" value="{{ track.id }}">
+                            <button type="submit"
+                                class="{% if track.is_active %}bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200{% else %}bg-gray-50 hover:bg-gray-100 text-gray-500 border border-gray-200{% endif %} px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5">
+                                <i class="fas {% if track.is_active %}fa-eye{% else %}fa-eye-slash{% endif %}"></i>
+                                {% if track.is_active %}Aktif{% else %}Pasif{% endif %}
+                            </button>
+                        </form>
+
+                        <!-- Sil -->
+                        <form method="POST" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="track_id" value="{{ track.id }}">
+                            <button type="button" onclick="confirmDeleteTrack(this, '{{ track.title|escapejs }}')"
+                                class="bg-red-50 hover:bg-red-100 text-red-500 px-3 py-1.5 rounded-lg text-xs transition border border-red-200">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Düzenleme Formu (Gizli) -->
+                <div id="edit-{{ track.id }}" class="hidden border-t border-purple-100 bg-violet-50 p-5">
+                    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="track_id" value="{{ track.id }}">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1.5">Başlık</label>
+                                <input type="text" name="title" value="{{ track.title }}"
+                                    class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1.5">Açıklama</label>
+                                <input type="text" name="description" value="{{ track.description }}"
+                                    class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1.5">İkon</label>
+                                <select name="icon"
+                                    class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                                    {% for val, label in icon_choices %}
+                                    <option value="{{ val }}" {% if track.icon == val %}selected{% endif %}>{{ label }} ({{ val }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1.5">Renk</label>
+                                <select name="color"
+                                    class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                                    {% for val, label in color_choices %}
+                                    <option value="{{ val }}" {% if track.color == val %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1.5">Sıra</label>
+                                <input type="number" name="order" value="{{ track.order }}" min="0"
+                                    class="w-full bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1.5">Yeni Ses Dosyası <span class="text-gray-400">(boş bırakırsanız değişmez)</span></label>
+                                <input type="file" name="audio_file" accept="audio/*"
+                                    class="w-full bg-white border border-purple-200 text-gray-600 text-sm rounded-lg px-3 py-2 outline-none focus:border-violet-500 transition file:bg-violet-100 file:text-violet-700 file:border-0 file:rounded-md file:px-3 file:py-1 file:text-xs file:mr-3 file:cursor-pointer">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3 pt-1">
+                            <button type="button" onclick="toggleEdit({{ track.id }})"
+                                class="text-gray-500 hover:text-purple-900 text-sm transition px-3 py-1.5 rounded-lg hover:bg-white border border-transparent hover:border-purple-100">
+                                İptal
+                            </button>
+                            <button type="submit"
+                                class="bg-violet-600 hover:bg-violet-500 text-white px-5 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                                <i class="fas fa-save"></i> Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="text-center py-14 bg-white rounded-3xl border-2 border-dashed border-purple-100">
+            <div class="w-16 h-16 bg-violet-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-music text-2xl text-violet-300"></i>
+            </div>
+            <h3 class="text-lg font-bold">Henüz Parça Yok</h3>
+            <p class="text-gray-400 text-sm mt-1">Yukarıdaki formu kullanarak ilk müzik parçasını ekleyin.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+function toggleEdit(id) {
+    document.getElementById('edit-' + id).classList.toggle('hidden');
+}
+async function confirmDeleteTrack(btn, title) {
+    const ok = await NS.confirm({
+        title: 'Parçayı Sil',
+        message: '"' + title + '" parçasını ve dosyasını kalıcı olarak silmek istiyor musunuz?',
+        confirmLabel: 'Sil',
+        cancelLabel: 'Vazgeç',
+        danger: true,
+    });
+    if (ok) btn.closest('form').submit();
+}
+</script>
+{% endblock %}

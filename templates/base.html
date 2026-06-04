@@ -1,0 +1,532 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NeuroSound Terapi{% endblock %}</title>
+
+    <!-- SEO ve Sosyal Medya Meta -->
+    <meta name="description" content="{% block meta_description %}NEURO SOUND — binaural ses frekansları ile mental sağlık ve odaklanma için terapi platformu.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}NEURO SOUND — Zihin ve Ses Terapi Platformu{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Psikolog destekli binaural frekans terapisiyle uyku, odaklanma ve rahatlama.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static 'images/logo.png' %}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Favicon (logo'dan SVG/PNG) -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/logo.png' %}">
+
+    <!-- Performans: CDN'e erken bağlantı -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+
+    <!-- Font Awesome: preload ile gecikme önlenir -->
+    <link rel="preload"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          as="style"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    </noscript>
+
+    <!-- Uygulama CSS -->
+    <link rel="stylesheet" href="{% static 'css/neurosound.css' %}">
+
+    <!-- UI yardımcı script (NS.confirm, NS.spinner vb.) -->
+    <script defer src="{% static 'js/ui.js' %}"></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-stone-900/60 text-stone-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Erişilebilirlik: Klavye kullanıcıları için ana içeriğe atla -->
+    <a href="#main-content"
+       class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200]
+              focus:bg-violet-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg
+              focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white">
+        Ana içeriğe geç
+    </a>
+
+    <!-- ─── Navigasyon ─────────────────────────────────────────── -->
+    <nav role="navigation"
+         aria-label="Ana navigasyon"
+         class="bg-[#32064C] text-white p-2 shadow-md border-b border-white/10 relative z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <!-- Logo -->
+            <a href="{% url 'landing' %}" class="flex items-center hover:opacity-80 transition" aria-label="NeuroSound ana sayfa">
+                <img src="{% static 'images/logo.png' %}" alt="NeuroSound" class="h-10 w-auto">
+            </a>
+
+            <!-- Masaüstü menü -->
+            <div class="hidden md:flex items-center gap-4 text-sm" role="menubar">
+                {% if user.is_authenticated %}
+                <a href="{% url 'landing' %}" role="menuitem"
+                   class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
+                    <i class="fas fa-home" aria-hidden="true"></i> Ana Sayfa
+                </a>
+                {% if user.is_superuser %}
+                <a href="{% url 'super_admin_dashboard' %}" role="menuitem"
+                   class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
+                    <i class="fas fa-columns" aria-hidden="true"></i> Panel
+                </a>
+                {% elif user.is_psychologist %}
+                <a href="{% url 'psychologist_dashboard' %}" role="menuitem"
+                   class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
+                    <i class="fas fa-columns" aria-hidden="true"></i> Panel
+                </a>
+                {% else %}
+                <a href="{% url 'patient_dashboard' %}" role="menuitem"
+                   class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
+                    <i class="fas fa-columns" aria-hidden="true"></i> Panel
+                </a>
+                <a href="{% url 'frequency_info' %}" role="menuitem"
+                   class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
+                    <i class="fas fa-wave-square" aria-hidden="true"></i> Frekans Nedir?
+                </a>
+                <a href="{% url 'music_library' %}" role="menuitem"
+                   class="text-stone-300 hover:text-white transition flex items-center gap-2 hover:bg-white/10 px-3 py-1 rounded-lg">
+                    <i class="fas fa-music" aria-hidden="true"></i> Müzikler
+                </a>
+                {% endif %}
+                <div class="flex items-center gap-2 ml-2 pl-2 border-l border-white/20">
+                    <!-- Bildirim Dropdown -->
+                    <div class="relative" id="notif-wrap">
+                        <button type="button" id="notif-btn"
+                                class="relative text-stone-300 hover:text-white transition px-2 py-1 rounded-lg hover:bg-white/10"
+                                title="Bildirimler"
+                                aria-label="Bildirimler"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            {% if unread_notifications_count %}
+                            <span id="notif-badge"
+                                  class="absolute -top-1 -right-1 bg-violet-600 text-white text-[10px] font-bold leading-none rounded-full min-w-[18px] h-[18px] inline-flex items-center justify-center px-1">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </button>
+
+                        <div id="notif-panel"
+                             class="hidden absolute right-0 mt-2 w-80 bg-stone-900/95 backdrop-blur border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                                <span class="font-semibold text-white text-sm">Bildirimler</span>
+                                {% if unread_notifications_count %}
+                                <button type="button" id="notif-mark-all"
+                                        class="text-xs text-violet-300 hover:text-violet-200 transition">
+                                    Tümünü okundu işaretle
+                                </button>
+                                {% endif %}
+                            </div>
+                            <ul class="max-h-80 overflow-y-auto custom-scrollbar">
+                                {% for n in recent_notifications %}
+                                <li class="px-4 py-3 border-b border-white/5 hover:bg-white/5 transition
+                                           {% if not n.is_read %}bg-violet-500/5{% endif %}"
+                                    data-notif-id="{{ n.id }}">
+                                    <div class="flex items-start gap-2">
+                                        {% if not n.is_read %}
+                                        <span class="mt-1.5 w-2 h-2 rounded-full bg-violet-500 flex-shrink-0"></span>
+                                        {% else %}
+                                        <span class="mt-1.5 w-2 h-2 flex-shrink-0"></span>
+                                        {% endif %}
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm text-stone-200 leading-snug">{{ n.message }}</p>
+                                            <p class="text-[11px] text-stone-500 mt-1">{{ n.created_at|date:"d M Y, H:i" }}</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% empty %}
+                                <li class="px-4 py-8 text-center text-stone-500 text-sm">
+                                    <i class="fas fa-bell-slash text-2xl mb-2 opacity-50"></i>
+                                    <p>Henüz bildiriminiz yok.</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'profile_view' %}" class="flex items-center gap-2 group cursor-pointer" title="Profili Düzenle">
+                        <i class="fas fa-user-circle text-violet-300 group-hover:text-white transition" aria-hidden="true"></i>
+                        <span class="font-medium opacity-90 group-hover:text-white transition">
+                            {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
+                        </span>
+                    </a>
+                </div>
+                <form method="post" action="{% url 'logout' %}" class="inline ml-2">
+                    {% csrf_token %}
+                    <button type="submit"
+                       class="bg-violet-800/50 hover:bg-violet-700 px-3 py-1 rounded-lg transition duration-200 border border-violet-500/30 text-sm"
+                       aria-label="Çıkış yap">
+                        Çıkış
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}" class="text-stone-300 hover:text-white transition font-medium px-3 py-1">Giriş Yap</a>
+                <a href="{% url 'register' %}"
+                   class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-1.5 rounded-lg transition shadow-lg shadow-violet-600/20 font-semibold border border-white/10">
+                    Kayıt Ol
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobil hamburger butonu -->
+            <button id="mobile-menu-btn"
+                    class="md:hidden text-stone-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition"
+                    aria-label="Menüyü aç veya kapat"
+                    aria-expanded="false"
+                    aria-controls="mobile-menu">
+                <i id="hamburger-icon" class="fas fa-bars text-xl" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Mobil menü -->
+        <div id="mobile-menu"
+             class="md:hidden hidden border-t border-white/10 mt-2 pt-2 pb-2 flex flex-col gap-1 text-sm"
+             role="menu"
+             aria-label="Mobil navigasyon menüsü">
+            {% if user.is_authenticated %}
+            <a href="{% url 'landing' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-home w-5 text-center" aria-hidden="true"></i> Ana Sayfa
+            </a>
+            {% if user.is_superuser %}
+            <a href="{% url 'super_admin_dashboard' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-columns w-5 text-center" aria-hidden="true"></i> Panel
+            </a>
+            {% elif user.is_psychologist %}
+            <a href="{% url 'psychologist_dashboard' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-columns w-5 text-center" aria-hidden="true"></i> Panel
+            </a>
+            {% else %}
+            <a href="{% url 'patient_dashboard' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-columns w-5 text-center" aria-hidden="true"></i> Panel
+            </a>
+            <a href="{% url 'frequency_info' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-wave-square w-5 text-center" aria-hidden="true"></i> Frekans Nedir?
+            </a>
+            <a href="{% url 'music_library' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-music w-5 text-center" aria-hidden="true"></i> Müzikler
+            </a>
+            {% endif %}
+            <a href="{% url 'profile_view' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-user-circle w-5 text-center text-violet-300" aria-hidden="true"></i>
+                {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
+            </a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" role="menuitem"
+                   class="text-red-400 hover:text-white hover:bg-red-600/20 px-4 py-2 rounded-lg flex items-center gap-3 w-full">
+                    <i class="fas fa-sign-out-alt w-5 text-center" aria-hidden="true"></i> Çıkış
+                </button>
+            </form>
+            {% else %}
+            <a href="{% url 'login' %}" role="menuitem"
+               class="text-stone-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg flex items-center gap-3">
+                <i class="fas fa-sign-in-alt w-5 text-center" aria-hidden="true"></i> Giriş Yap
+            </a>
+            <a href="{% url 'register' %}" role="menuitem"
+               class="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg flex items-center gap-3 mx-2">
+                <i class="fas fa-user-plus w-5 text-center" aria-hidden="true"></i> Kayıt Ol
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- ─── Ana İçerik ─────────────────────────────────────────── -->
+    <main id="main-content" tabindex="-1" class="flex-grow container mx-auto p-4 md:p-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ─── Footer ────────────────────────────────────────────── -->
+    <footer role="contentinfo" class="bg-[#2a0540] text-stone-400 text-sm mt-auto border-t border-white/10 relative z-10 w-full">
+        <div class="container mx-auto px-6 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+                <div>
+                    <h3 class="text-white font-bold text-lg mb-4 flex items-center justify-center md:justify-start gap-2">
+                        <i class="fas fa-brain text-violet-400" aria-hidden="true"></i> NeuroSound
+                    </h3>
+                    <p class="text-xs leading-relaxed max-w-xs mx-auto md:mx-0">
+                        Ses frekansları ile zihinsel performansınızı artırın, rahatlayın ve odaklanın.
+                        Bilimin ve müziğin gücü bir arada.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4 md:pl-2">Hızlı Erişim</h4>
+                    <ul class="space-y-2 text-xs" role="list">
+                        <li><a href="/" class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-home text-violet-500/70 w-6 text-center" aria-hidden="true"></i> Ana Sayfa</a></li>
+                        <li><a href="{% url 'frequency_info' %}" class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-wave-square text-violet-500/70 w-6 text-center" aria-hidden="true"></i> Frekanslar Hakkında</a></li>
+                        <li><a href="{% url 'profile_view' %}" class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-user text-violet-500/70 w-6 text-center" aria-hidden="true"></i> Profilim</a></li>
+                        <li><a href="{% url 'contact' %}" class="hover:text-white transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-envelope text-violet-500/70 w-6 text-center" aria-hidden="true"></i> İletişim</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4 md:pl-2">Yasal</h4>
+                    <ul class="space-y-2 text-xs" role="list">
+                        <li><a href="{% url 'kvkk' %}" class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-scale-balanced text-emerald-500/70 w-6 text-center" aria-hidden="true"></i> KVKK Aydınlatma Metni</a></li>
+                        <li><a href="{% url 'terms' %}" class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-file-contract text-emerald-500/70 w-6 text-center" aria-hidden="true"></i> Kullanıcı Sözleşmesi</a></li>
+                        <li><a href="{% url 'privacy' %}" class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-user-shield text-emerald-500/70 w-6 text-center" aria-hidden="true"></i> Gizlilik Politikası</a></li>
+                        <li><a href="{% url 'cookie_policy' %}" class="hover:text-violet-300 transition flex items-center gap-2 justify-center md:justify-start"><i class="fas fa-cookie-bite text-emerald-500/70 w-6 text-center" aria-hidden="true"></i> Çerez Politikası</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">İletişim</h4>
+                    <div class="space-y-4 text-xs">
+                        <div>
+                            <p class="text-violet-400 font-semibold mb-1 flex items-center gap-1 justify-center md:justify-start">
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i> Merkez Ofis
+                            </p>
+                            <address class="text-stone-300 leading-relaxed not-italic">
+                                Zafer Mahallesi, Centilmen Sokak<br>
+                                No:49, Daire 11<br>
+                                Bahçelievler / İstanbul
+                            </address>
+                            <a href="tel:+905558975701" class="text-stone-400 hover:text-white transition flex items-center gap-1 justify-center md:justify-start mt-1">
+                                <i class="fas fa-phone text-violet-500/70" aria-hidden="true"></i> 0555 897 57 01
+                            </a>
+                        </div>
+                        <div>
+                            <p class="text-violet-400 font-semibold mb-1 flex items-center gap-1 justify-center md:justify-start">
+                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i> Altunizade Şubesi
+                            </p>
+                            <address class="text-stone-300 leading-relaxed not-italic">
+                                Kuşbakışı Caddesi No:2<br>
+                                34662 Üsküdar / İstanbul
+                            </address>
+                            <a href="tel:+908504747475" class="text-stone-400 hover:text-white transition flex items-center gap-1 justify-center md:justify-start mt-1">
+                                <i class="fas fa-phone text-violet-500/70" aria-hidden="true"></i> 0850 474 74 75
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-white/5 mt-10 pt-6 text-center text-xs text-stone-500">
+                &copy; {% now "Y" %} NeuroSound Terapi Platformu. Tüm hakları saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ─── Çerez Bildirimi ───────────────────────────────────── -->
+    <div id="cookie-banner"
+         role="dialog"
+         aria-label="Çerez tercihleri"
+         aria-live="polite"
+         class="fixed bottom-0 left-0 w-full bg-[#1a1a1ae6] backdrop-blur-md border-t border-white/10 p-4 md:p-6 z-[100] transform transition-transform duration-500 translate-y-full flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl">
+        <div class="flex-1">
+            <h3 class="text-white font-semibold text-lg mb-1 flex items-center">
+                <i class="fas fa-cookie-bite text-yellow-500 mr-2" aria-hidden="true"></i> Çerez Tercihleri
+            </h3>
+            <p class="text-stone-300 text-sm leading-relaxed">
+                Sizlere daha iyi bir deneyim sunmak için çerezleri kullanıyoruz. Daha fazla bilgi için
+                <a href="{% url 'cookie_policy' %}" class="text-violet-400 hover:text-violet-300 underline underline-offset-2">Çerez Politikamızı</a>
+                inceleyebilirsiniz.
+            </p>
+        </div>
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <button id="reject-cookies"
+                    class="flex-1 md:flex-none px-4 py-2 rounded-lg border border-white/20 text-stone-300 hover:bg-white/5 hover:text-white transition text-sm font-medium">
+                Reddet
+            </button>
+            <button id="accept-cookies"
+                    class="flex-1 md:flex-none px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-600/20 transition text-sm font-semibold">
+                Kabul Et
+            </button>
+        </div>
+    </div>
+
+    <!-- ─── Global Toast Bildirimleri ────────────────────────── -->
+    <div id="toast-container"
+         class="fixed top-4 right-4 z-[150] space-y-2 pointer-events-none"
+         role="status"
+         aria-live="polite"
+         aria-atomic="false">
+    </div>
+
+    <!-- Django Messages → Toast (gizli köprü elementleri) -->
+    {% for message in messages %}
+    <div class="hidden"
+         data-toast-message="{{ message|escapejs }}"
+         data-toast-type="{{ message.tags }}">
+    </div>
+    {% endfor %}
+
+    <!-- ─── Scripts ───────────────────────────────────────────── -->
+    <script>
+    (function () {
+        /* ── Hamburger Menü ── */
+        const btn  = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        const icon = document.getElementById('hamburger-icon');
+        if (btn && menu) {
+            btn.addEventListener('click', function () {
+                const isOpen = !menu.classList.contains('hidden');
+                menu.classList.toggle('hidden', isOpen);
+                icon.className = isOpen ? 'fas fa-bars text-xl' : 'fas fa-times text-xl';
+                btn.setAttribute('aria-expanded', String(!isOpen));
+            });
+        }
+
+        /* ── Çerez Banner ── */
+        const banner    = document.getElementById('cookie-banner');
+        const acceptBtn = document.getElementById('accept-cookies');
+        const rejectBtn = document.getElementById('reject-cookies');
+
+        if (banner && !localStorage.getItem('cookieConsent')) {
+            setTimeout(() => banner.classList.remove('translate-y-full'), 1000);
+        }
+        function closeBanner() { banner && banner.classList.add('translate-y-full'); }
+        acceptBtn && acceptBtn.addEventListener('click', function () {
+            localStorage.setItem('cookieConsent', 'accepted'); closeBanner();
+        });
+        rejectBtn && rejectBtn.addEventListener('click', function () {
+            localStorage.setItem('cookieConsent', 'rejected'); closeBanner();
+        });
+
+        /* ── Global Toast Sistemi ── */
+        const TOAST_COLORS = {
+            success: 'bg-emerald-500',
+            error:   'bg-red-500',
+            warning: 'bg-amber-500',
+            info:    'bg-blue-500',
+            default: 'bg-stone-700',
+        };
+        const TOAST_ICONS = {
+            success: 'fa-check-circle',
+            error:   'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info:    'fa-info-circle',
+            default: 'fa-bell',
+        };
+
+        window.showToast = function (message, type, duration) {
+            type     = type     || 'info';
+            duration = duration || 4000;
+            var container = document.getElementById('toast-container');
+            if (!container) return;
+
+            var color = TOAST_COLORS[type] || TOAST_COLORS.default;
+            var iconCls = TOAST_ICONS[type] || TOAST_ICONS.default;
+
+            var toast = document.createElement('div');
+            toast.setAttribute('role', 'alert');
+            toast.className = [
+                'pointer-events-auto flex items-center gap-3 px-4 py-3',
+                'rounded-xl text-white shadow-xl text-sm font-medium',
+                'transform translate-x-full transition-transform duration-300 ease-out',
+                'max-w-sm', color
+            ].join(' ');
+            toast.innerHTML =
+                '<i class="fas ' + iconCls + ' shrink-0" aria-hidden="true"></i>' +
+                '<span class="flex-1">' + message + '</span>' +
+                '<button onclick="this.closest(\'[role=alert]\').remove()" ' +
+                '        aria-label="Bildirimi kapat" ' +
+                '        class="ml-auto opacity-70 hover:opacity-100 shrink-0">' +
+                '    <i class="fas fa-times text-xs" aria-hidden="true"></i>' +
+                '</button>';
+
+            container.appendChild(toast);
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    toast.classList.remove('translate-x-full');
+                });
+            });
+            setTimeout(function () {
+                toast.classList.add('translate-x-full');
+                setTimeout(function () { toast.remove(); }, 300);
+            }, duration);
+        };
+
+        /* ── Django Messages → Toast ── */
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-toast-message]').forEach(function (el) {
+                var msg  = el.getAttribute('data-toast-message');
+                var type = el.getAttribute('data-toast-type') || 'info';
+                // Django tag'larını normalize et
+                if (type === 'danger') type = 'error';
+                showToast(msg, type);
+                el.remove();
+            });
+        });
+    })();
+    </script>
+
+    {# Reusable confirm modal — NS.confirm() bunu kullanır #}
+    {% include 'partials/_confirm_modal.html' %}
+
+    {% if user.is_authenticated %}
+    <script>
+    // Bildirim dropdown — toggle + mark-as-read AJAX
+    (function () {
+        const wrap = document.getElementById('notif-wrap');
+        if (!wrap) return;
+        const btn = document.getElementById('notif-btn');
+        const panel = document.getElementById('notif-panel');
+        const badge = document.getElementById('notif-badge');
+        const markAllBtn = document.getElementById('notif-mark-all');
+        const csrfToken = '{{ csrf_token }}';
+
+        function closePanel() {
+            panel.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+        function openPanel() {
+            panel.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            // Görünür hale gelen okunmamış bildirimleri arka planda okundu yap
+            panel.querySelectorAll('li[data-notif-id]').forEach(function (li) {
+                if (!li.classList.contains('bg-violet-500/5')) return; // already read
+                const id = li.getAttribute('data-notif-id');
+                fetch(`/api/notifications/${id}/read/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                }).catch(function () { /* sessizce yut */ });
+            });
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (panel.classList.contains('hidden')) openPanel();
+            else closePanel();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!wrap.contains(e.target)) closePanel();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closePanel();
+        });
+
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                fetch('/api/notifications/read-all/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                })
+                .then(r => r.json())
+                .then(function () {
+                    if (badge) badge.remove();
+                    panel.querySelectorAll('li[data-notif-id]').forEach(function (li) {
+                        li.classList.remove('bg-violet-500/5');
+                    });
+                    markAllBtn.remove();
+                })
+                .catch(function () { /* yut */ });
+            });
+        }
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,36 @@
+# NEURO SOUND — Yerel/Production benzeri orkestrasyonu
+# Database: XAMPP MySQL (host makinede çalışır, Docker buraya bağlanır)
+# Komutlar:
+#   docker compose up --build       — image build edip ayağa kaldırır
+#   docker compose down             — durdurur
+#   docker compose exec web bash    — uygulama container'ında shell
+#   docker compose logs -f web      — logları takip et
+
+services:
+  web:
+    build: .
+    container_name: neuro_web
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DB_HOST: host.docker.internal
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-neuro_db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      DEBUG: ${DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:8000}
+      SECRET_KEY: ${SECRET_KEY}
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - media_data:/app/media
+      - logs_data:/app/logs
+
+volumes:
+  media_data:
+  logs_data:

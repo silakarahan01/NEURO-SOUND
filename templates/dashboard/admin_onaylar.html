@@ -1,0 +1,129 @@
+{% extends 'base_admin.html' %}
+{% block title %}Onaylar{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <div>
+        <h2 class="text-2xl font-bold flex items-center gap-3">
+            <div class="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-user-check text-violet-600 text-sm"></i>
+            </div>
+            Onay Bekleyen Psikologlar
+        </h2>
+        <p class="text-gray-500 text-sm mt-1 ml-12">Diploma kontrolü yapılan başvurular aşağıda listelenmektedir.</p>
+    </div>
+
+    <div class="grid gap-4">
+        {% for psy in psychologists %}
+        <div class="bg-white shadow-sm border border-purple-100 rounded-2xl p-6 flex flex-col lg:flex-row items-center justify-between gap-6 hover:shadow-md hover:border-violet-200 transition">
+
+            <!-- Kişi Bilgisi -->
+            <div class="flex items-center gap-4 w-full lg:w-auto">
+                <div class="w-14 h-14 bg-violet-100 rounded-full flex items-center justify-center text-xl font-bold text-violet-600 ring-2 ring-violet-200 shrink-0">
+                    {{ psy.first_name|first }}{{ psy.last_name|first }}
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold flex items-center gap-2 flex-wrap">
+                        {{ psy.first_name }} {{ psy.last_name }}
+                        <span class="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded border border-violet-200">Psikolog</span>
+                    </h3>
+                    <span class="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                        <i class="fas fa-envelope text-gray-400 text-xs"></i> {{ psy.email }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Aksiyonlar -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto bg-violet-50 p-3 rounded-xl border border-violet-100">
+
+                <button onclick="sendCode(this, {{ psy.id }})"
+                    class="w-full sm:w-auto bg-white hover:bg-violet-100 border border-purple-200 text-purple-700 hover:text-violet-800 px-4 py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2 group shadow-sm">
+                    <i class="fas fa-paper-plane group-hover:-translate-y-0.5 transition-transform"></i>
+                    <span>Kod Gönder</span>
+                </button>
+
+                <div class="hidden sm:block w-px h-8 bg-purple-200"></div>
+
+                <form action="{% url 'approve_psychologist' %}" method="POST" class="flex w-full sm:w-auto gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_id" value="{{ psy.id }}">
+                    <input type="text" name="code" placeholder="Gelen Kod"
+                        class="w-full sm:w-28 bg-white border border-purple-200 text-gray-700 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition text-center tracking-widest"
+                        required>
+                    <button type="submit"
+                        class="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                        <i class="fas fa-check"></i> Onayla
+                    </button>
+                </form>
+
+                <div class="hidden sm:block w-px h-8 bg-purple-200"></div>
+
+                <form method="POST" action="{% url 'delete_user' psy.id %}">
+                    {% csrf_token %}
+                    <button type="button" onclick="confirmDeleteOnay(this, '{{ psy.first_name|escapejs }} {{ psy.last_name|escapejs }}')"
+                        class="w-full sm:w-auto bg-red-50 hover:bg-red-100 border border-red-200 text-red-500 px-3 py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2"
+                        title="Kullanıcıyı Sil">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-purple-100">
+            <div class="w-20 h-20 bg-violet-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clipboard-check text-3xl text-violet-300"></i>
+            </div>
+            <h3 class="text-xl font-bold">Bekleyen Başvuru Yok</h3>
+            <p class="text-gray-400 mt-1 text-sm">Şu an onay bekleyen herhangi bir psikolog kaydı bulunmuyor.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+async function sendCode(btn, userId) {
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gönderiliyor...';
+    btn.classList.add('opacity-75');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    try {
+        const response = await fetch(`/super-admin/send-code/${userId}/`, {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrfToken},
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            btn.innerHTML = '<i class="fas fa-check"></i> Gönderildi';
+            btn.classList.remove('bg-white', 'hover:bg-violet-100');
+            btn.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+                btn.classList.add('bg-white', 'hover:bg-violet-100');
+            }, 3000);
+        } else {
+            showToast('Hata: ' + data.message, 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch (e) {
+        showToast('Bir hata oluştu. Lütfen bağlantınızı kontrol edin.', 'error');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function confirmDeleteOnay(btn, name) {
+    const ok = await NS.confirm({
+        title: 'Kullanıcıyı Sil',
+        message: '"' + name + '" adlı kullanıcıyı ve tüm verilerini kalıcı olarak silmek istediğinize emin misiniz?',
+        confirmLabel: 'Sil', cancelLabel: 'Vazgeç', danger: true,
+    });
+    if (ok) btn.closest('form').submit();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+NEURO SOUND — E-posta Doğrulama
+=================================
+
+Merhaba {{ first_name|default:user.username }},
+
+NEURO SOUND hesabınızı etkinleştirmek için aşağıdaki kodu kullanın:
+
+    {{ code }}
+
+Kod {{ expiry_minutes }} dakika geçerlidir.
+
+Bu kaydı siz yapmadıysanız bu e-postayı yok sayabilirsiniz.
+
+— NEURO SOUND ekibi

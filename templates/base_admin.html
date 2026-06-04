@@ -1,0 +1,280 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Yönetici Paneli{% endblock %} — NeuroSound</title>
+
+    <!-- Performans: CDN'e erken bağlantı -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+
+    <link rel="preload"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+          as="style"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    </noscript>
+
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+
+<body class="font-sans min-h-screen">
+
+    <!-- Erişilebilirlik: Ana içeriğe atla -->
+    <a href="#main-content"
+       class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200]
+              focus:bg-violet-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg
+              focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white">
+        Ana içeriğe geç
+    </a>
+
+    <!-- Mobil üst bar -->
+    <header class="lg:hidden flex items-center justify-between bg-[#0f172a] px-4 py-3 border-b border-white/10">
+        <a href="{% url 'super_admin_dashboard' %}" aria-label="NeuroSound yönetim paneli">
+            <img src="{% static 'images/logo.png' %}" alt="NeuroSound" class="h-10 w-auto">
+        </a>
+        <button id="sidebar-toggle"
+                class="text-stone-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition"
+                aria-label="Kenar çubuğunu aç veya kapat"
+                aria-expanded="false"
+                aria-controls="sidebar">
+            <i id="sidebar-icon" class="fas fa-bars text-xl" aria-hidden="true"></i>
+        </button>
+    </header>
+
+    <div class="flex min-h-screen lg:min-h-0">
+
+        <!-- Sidebar -->
+        <aside id="sidebar"
+               role="complementary"
+               aria-label="Yönetici navigasyonu"
+               class="fixed lg:sticky top-0 left-0 h-screen w-64 bg-[#0f172a] border-r border-white/10 flex flex-col z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+
+            <!-- Logo -->
+            <div class="px-6 py-5 border-b border-white/10">
+                <a href="{% url 'landing' %}" class="flex items-center gap-3 group" aria-label="Ana sayfaya git">
+                    <div>
+                        <img src="{% static 'images/logo.png' %}" alt="NeuroSound" class="sidebar-logo">
+                        <div class="flex items-center gap-1 mt-1 pl-12">
+                            <i class="fas fa-crown text-violet-400 text-xs" aria-hidden="true"></i>
+                            <span class="text-violet-400 text-[10px] uppercase tracking-widest">Yönetici</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Navigasyon -->
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" aria-label="Yönetim menüsü">
+                <p class="text-[10px] uppercase tracking-widest text-white/60 px-3 pb-2">Yönetim</p>
+
+                <a href="{% url 'super_admin_dashboard' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'super_admin_dashboard' %}active{% endif %} flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:text-white hover:bg-white/5 transition text-sm"
+                   {% if request.resolver_match.url_name == 'super_admin_dashboard' %}aria-current="page"{% endif %}>
+                    <i class="fas fa-gauge-high w-5 text-center text-white" aria-hidden="true"></i>
+                    Kontrol Paneli
+                </a>
+
+                <a href="{% url 'admin_patients' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'admin_patients' %}active{% endif %} flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:text-white hover:bg-white/5 transition text-sm"
+                   {% if request.resolver_match.url_name == 'admin_patients' %}aria-current="page"{% endif %}>
+                    <i class="fas fa-users w-5 text-center text-white" aria-hidden="true"></i>
+                    Danışanlar
+                </a>
+
+                <a href="{% url 'admin_psychologists' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'admin_psychologists' %}active{% endif %} flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:text-white hover:bg-white/5 transition text-sm"
+                   {% if request.resolver_match.url_name == 'admin_psychologists' %}aria-current="page"{% endif %}>
+                    <i class="fas fa-user-md w-5 text-center text-white" aria-hidden="true"></i>
+                    Psikologlar
+                </a>
+
+                <a href="{% url 'admin_onaylar' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'admin_onaylar' %}active{% endif %} flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:text-white hover:bg-white/5 transition text-sm"
+                   {% if request.resolver_match.url_name == 'admin_onaylar' %}aria-current="page"{% endif %}>
+                    <i class="fas fa-user-check w-5 text-center text-white" aria-hidden="true"></i>
+                    Onaylar
+                </a>
+
+                <a href="{% url 'admin_formlar' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'admin_formlar' %}active{% endif %} flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:text-white hover:bg-white/5 transition text-sm"
+                   {% if request.resolver_match.url_name == 'admin_formlar' %}aria-current="page"{% endif %}>
+                    <i class="fas fa-envelope w-5 text-center text-white" aria-hidden="true"></i>
+                    Formlar
+                </a>
+
+                <a href="{% url 'admin_muzik' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'admin_muzik' %}active{% endif %} flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:text-white hover:bg-white/5 transition text-sm"
+                   {% if request.resolver_match.url_name == 'admin_muzik' %}aria-current="page"{% endif %}>
+                    <i class="fas fa-music w-5 text-center text-white" aria-hidden="true"></i>
+                    Müzikler
+                </a>
+
+                <div class="pt-4">
+                    <p class="text-[10px] uppercase tracking-widest text-white/60 px-3 pb-2">Site</p>
+                    <a href="{% url 'landing' %}"
+                       class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-white hover:text-white hover:bg-white/5 transition text-sm">
+                        <i class="fas fa-globe w-5 text-center text-white" aria-hidden="true"></i>
+                        Ana Sayfaya Dön
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Alt: Kullanıcı bilgisi + çıkış -->
+            <div class="px-4 py-4 border-t border-white/10">
+                <div class="flex items-center gap-3 mb-3 px-1">
+                    <div class="w-8 h-8 bg-violet-700/40 rounded-full flex items-center justify-center text-xs font-bold text-violet-300 ring-1 ring-violet-500/30 shrink-0"
+                         aria-hidden="true">
+                        {{ user.first_name|first }}{{ user.last_name|first }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-white text-xs font-semibold truncate">
+                            {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
+                        </p>
+                        <p class="text-white/60 text-[10px] truncate">{{ user.email }}</p>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                       class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:text-white hover:bg-red-500/20 border border-red-400/40 hover:border-red-400/70 transition text-sm w-full"
+                       aria-label="Oturumu kapat">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Çıkış Yap
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Overlay (mobil) -->
+        <div id="sidebar-overlay"
+             class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"
+             aria-hidden="true">
+        </div>
+
+        <!-- Ana içerik -->
+        <main id="main-content" tabindex="-1" class="flex-1 min-w-0 p-5 md:p-8 lg:ml-0">
+
+            <!-- Django Messages (inline, admin için mevcut stil korundu) -->
+            {% if messages %}
+            <div role="status" aria-live="polite" class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="p-3 rounded-xl border text-sm flex items-center gap-3
+                    {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/20 text-emerald-600
+                    {% elif message.tags == 'error' %}bg-red-500/10 border-red-500/20 text-red-600
+                    {% else %}bg-blue-500/10 border-blue-500/20 text-blue-600{% endif %}"
+                     role="alert">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}" aria-hidden="true"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+    (function () {
+        var toggle  = document.getElementById('sidebar-toggle');
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        var icon    = document.getElementById('sidebar-icon');
+
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            icon.className = 'fas fa-times text-xl';
+            toggle && toggle.setAttribute('aria-expanded', 'true');
+        }
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+            icon.className = 'fas fa-bars text-xl';
+            toggle && toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        toggle  && toggle.addEventListener('click', function () {
+            sidebar.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+        });
+        overlay && overlay.addEventListener('click', closeSidebar);
+    })();
+    </script>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[200] flex flex-col gap-2 pointer-events-none" aria-live="polite"></div>
+
+    <!-- Confirm modal -->
+    <div id="ns-confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="ns-confirm-title"
+         style="position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;">
+        <div style="width:100%;max-width:26rem;background:#fff;border-radius:1rem;padding:1.75rem;box-shadow:0 20px 50px rgba(0,0,0,0.15);">
+            <h3 id="ns-confirm-title" data-role="title" style="font-size:1.1rem;font-weight:700;color:#1e293b;margin:0 0 .75rem;">Onay</h3>
+            <p data-role="message" style="font-size:.9rem;color:#475569;margin:0 0 1.5rem;line-height:1.5;">Bu işlemi yapmak istediğinize emin misiniz?</p>
+            <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+                <button data-role="cancel" style="padding:.5rem 1rem;border-radius:.5rem;border:1px solid #e2e8f0;background:#f8f9fc;color:#475569;font-size:.85rem;cursor:pointer;">İptal</button>
+                <button data-role="confirm" style="padding:.5rem 1rem;border-radius:.5rem;border:none;background:#7c3aed;color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;">Onayla</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    /* ── showToast ── */
+    window.showToast = function (message, type, duration) {
+        duration = duration || 4000;
+        var colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#6366f1' };
+        var icons  = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+        var color  = colors[type] || colors.info;
+        var icon   = icons[type]  || icons.info;
+        var container = document.getElementById('toast-container');
+        var toast = document.createElement('div');
+        toast.style.cssText = 'pointer-events:auto;display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;border-radius:.75rem;background:#fff;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.1);font-size:.85rem;color:#1e293b;min-width:260px;max-width:360px;transform:translateX(120%);transition:transform .3s ease;';
+        toast.innerHTML = '<i class="fas ' + icon + '" style="color:' + color + ';flex-shrink:0;"></i><span style="flex:1;">' + message + '</span>';
+        container.appendChild(toast);
+        requestAnimationFrame(function () { toast.style.transform = 'translateX(0)'; });
+        setTimeout(function () {
+            toast.style.transform = 'translateX(120%)';
+            setTimeout(function () { toast.remove(); }, 300);
+        }, duration);
+    };
+
+    /* ── NS.confirm ── */
+    window.NS = window.NS || {};
+    NS.confirm = function (opts) {
+        opts = opts || {};
+        var modal = document.getElementById('ns-confirm-modal');
+        var titleEl  = modal.querySelector('[data-role="title"]');
+        var msgEl    = modal.querySelector('[data-role="message"]');
+        var okBtn    = modal.querySelector('[data-role="confirm"]');
+        var cancelBtn= modal.querySelector('[data-role="cancel"]');
+        if (titleEl)   titleEl.textContent  = opts.title   || 'Onay';
+        if (msgEl)     msgEl.textContent    = opts.message || 'Bu işlemi yapmak istediğinize emin misiniz?';
+        if (okBtn)     okBtn.textContent    = opts.confirmLabel || 'Onayla';
+        if (cancelBtn) cancelBtn.textContent= opts.cancelLabel  || 'İptal';
+        if (okBtn) okBtn.style.background   = opts.danger ? '#dc2626' : '#7c3aed';
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+        return new Promise(function (resolve) {
+            function cleanup(result) {
+                modal.style.display = 'none';
+                okBtn    && okBtn.removeEventListener('click', onOk);
+                cancelBtn&& cancelBtn.removeEventListener('click', onCancel);
+                document.removeEventListener('keydown', onKey);
+                resolve(result);
+            }
+            function onOk()     { cleanup(true); }
+            function onCancel() { cleanup(false); }
+            function onKey(e)   { if (e.key === 'Escape') cleanup(false); }
+            okBtn     && okBtn.addEventListener('click', onOk);
+            cancelBtn && cancelBtn.addEventListener('click', onCancel);
+            document.addEventListener('keydown', onKey);
+        });
+    };
+    </script>
+
+</body>
+</html>

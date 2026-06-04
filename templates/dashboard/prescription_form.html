@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Reçeteyi Düzenle | NEURO SOUND{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pt-24 pb-12 px-4">
+    <div class="max-w-2xl mx-auto">
+
+        <!-- Başlık -->
+        <div class="flex items-center gap-3 mb-8">
+            <a href="{% url 'psychologist_dashboard' %}"
+               class="text-stone-400 hover:text-white transition-colors"
+               aria-label="Geri dön">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-2xl sm:text-3xl font-bold text-white">
+                {% if mode == 'edit' %}Reçeteyi Düzenle{% else %}Yeni Reçete{% endif %}
+            </h1>
+        </div>
+
+        <!-- Form Kartı -->
+        <div class="glass-card p-6 sm:p-8 rounded-2xl">
+            <form method="POST" novalidate class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="p-3 rounded-lg bg-red-500/20 border border-red-500/40 text-red-200 text-sm">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}"
+                               class="block text-sm font-medium text-stone-300 mb-2">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <p class="field-help">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% for err in field.errors %}
+                            <span class="field-error">{{ err }}</span>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <!-- Aksiyon Butonları -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button type="submit"
+                            class="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600
+                                   text-white font-semibold hover:from-violet-700 hover:to-purple-700
+                                   transition-all shadow-lg">
+                        <i class="fas fa-save mr-2"></i>
+                        {% if mode == 'edit' %}Değişiklikleri Kaydet{% else %}Reçeteyi Oluştur{% endif %}
+                    </button>
+                    <a href="{% url 'psychologist_dashboard' %}"
+                       class="flex-1 px-6 py-3 rounded-xl bg-stone-800 border border-stone-700
+                              text-stone-300 font-semibold hover:bg-stone-700 transition-all
+                              text-center">
+                        İptal
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {% if mode == 'edit' and prescription %}
+        <p class="text-center text-stone-500 text-xs mt-6">
+            Reçete ID: #{{ prescription.id }} • Oluşturulma: {{ prescription.created_at|date:"d.m.Y H:i" }}
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

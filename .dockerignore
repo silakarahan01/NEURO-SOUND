@@ -1,0 +1,67 @@
+# Git ve VCS
+.git
+.gitignore
+.gitattributes
+
+# Sanal ortam ve build artefaktları
+venv
+.venv
+env
+ENV
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+build
+dist
+
+# Test ve geliştirme dosyaları (production image'a girmesin)
+.pytest_cache
+.coverage
+htmlcov
+.tox
+.mypy_cache
+.ruff_cache
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment dosyaları (secrets!)
+.env
+.env.*
+!.env.example
+
+# Django runtime
+staticfiles
+media
+db.sqlite3
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node (Tailwind build varsa)
+node_modules
+
+# Akademik / private
+Bitirme_Projesi_Vize_Durum_Raporu*.docx
+
+# AI Tools
+.claude
+.anthropic
+claude_history.json
+*claude_session*
+
+# CI/Docker meta
+.github
+Dockerfile
+docker-compose*.yml
+.dockerignore

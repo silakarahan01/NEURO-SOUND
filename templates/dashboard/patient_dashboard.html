@@ -1,0 +1,686 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Sol Taraf: Reçete Bilgisi ve Oynatıcı -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- Abonelik Durum Kartı (Sadece Bireysel ve Aboneliği Olmayanlar İçin) -->
+        {% if user.is_individual and not subscription %}
+        <div class="glass-card p-4 rounded-2xl flex items-center justify-between border-l-4 border-l-red-500">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center bg-red-500/20 text-red-400">
+                    <i class="fas fa-crown text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">
+                        Abonelik Gerekli
+                    </h3>
+                    <p class="text-[10px] text-stone-400">
+                        Dinlemeye devam etmek için lütfen aboneliğinizi yenileyin.
+                    </p>
+                </div>
+            </div>
+            <a href="{% url 'payment_view' %}"
+                class="px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center gap-2 bg-gradient-to-r from-red-500 to-pink-600 text-white animate-pulse">
+                Yenile <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- ─── ANKET / ML ÖNERİ KARTLARI (sadece bireysel kullanıcılar) ─── -->
+        {% if user.is_individual %}
+
+        {% if show_survey_prompt %}
+        <!-- Anket yok veya plan bitti → CTA kartı -->
+        <div class="glass-card p-5 rounded-2xl flex items-center justify-between
+                    {% if plan_expired %}border-l-4 border-l-emerald-500{% else %}border-l-4 border-l-violet-500{% endif %}">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center
+                            {% if plan_expired %}bg-emerald-500/20 text-emerald-400{% else %}bg-violet-500/20 text-violet-400{% endif %}">
+                    {% if plan_expired %}
+                    <i class="fas fa-sync-alt text-lg"></i>
+                    {% else %}
+                    <i class="fas fa-clipboard-list text-lg"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if plan_expired %}
+                    <h3 class="font-bold text-white text-base">15 Günlük Planınız Tamamlandı!</h3>
+                    <p class="text-[10px] text-stone-400">Değişimlerinizi değerlendirmek için yeni bir anket yapın.</p>
+                    {% else %}
+                    <h3 class="font-bold text-white text-base">Anketinizi Doldurun</h3>
+                    <p class="text-[10px] text-stone-400">Size özel 15 günlük frekans programı için kısa bir değerlendirme yapın.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'survey_view' %}"
+               class="px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 text-white
+                      {% if plan_expired %}bg-gradient-to-r from-emerald-500 to-teal-600{% else %}bg-gradient-to-r from-violet-500 to-purple-600 animate-pulse{% endif %}">
+                {% if plan_expired %}Yenile{% else %}Başla{% endif %}
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+
+        {% elif latest_survey %}
+        <!-- Aktif plan var → öneri kartı -->
+        <div class="glass-card p-5 rounded-2xl border border-violet-500/20 bg-violet-500/5">
+
+            <!-- Başlık satırı -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-stone-300 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-brain text-violet-400"></i> Aktif Programınız
+                </h3>
+                <a href="{% url 'survey_view' %}"
+                   class="text-[11px] text-stone-500 hover:text-violet-400 transition flex items-center gap-1">
+                    <i class="fas fa-redo-alt text-[10px]"></i> Anketi Yenile
+                </a>
+            </div>
+
+            <!-- Frekans / Gün / Dakika üçlüsü -->
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="bg-stone-800/50 rounded-xl p-3 text-center border border-white/5">
+                    <div class="text-lg font-bold text-violet-400 capitalize">{{ latest_survey.recommended_frequency }}</div>
+                    <div class="text-[10px] text-stone-500 mt-0.5">Frekans</div>
+                </div>
+                <div class="bg-stone-800/50 rounded-xl p-3 text-center border border-white/5">
+                    <div class="text-lg font-bold text-white">
+                        {{ latest_survey.days_remaining }}<span class="text-xs text-stone-500">/15</span>
+                    </div>
+                    <div class="text-[10px] text-stone-500 mt-0.5">Kalan Gün</div>
+                </div>
+                <div class="bg-stone-800/50 rounded-xl p-3 text-center border border-white/5">
+                    <div class="text-lg font-bold text-white">{{ latest_survey.recommended_minutes }}</div>
+                    <div class="text-[10px] text-stone-500 mt-0.5">Dk / Gün</div>
+                </div>
+            </div>
+
+            <!-- İlerleme çubuğu (15 günlük döngü) -->
+            {% with completed=latest_survey.days_completed %}
+            <div class="mb-3">
+                <div class="flex justify-between text-[10px] text-stone-500 mb-1">
+                    <span>Gün {{ completed }} / 15</span>
+                    <span>{% widthratio completed 15 100 %}% tamamlandı</span>
+                </div>
+                <div class="w-full bg-stone-800 rounded-full h-1.5">
+                    <div class="bg-gradient-to-r from-violet-500 to-purple-500 h-1.5 rounded-full transition-all"
+                         style="width: {% widthratio completed 15 100 %}%"></div>
+                </div>
+            </div>
+            {% endwith %}
+
+            <!-- Model güven skoru -->
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-[10px] text-stone-500">Model güveni:</span>
+                <div class="flex-1 bg-stone-800 rounded-full h-1">
+                    <div class="bg-violet-500/60 h-1 rounded-full"
+                         style="width: {% widthratio latest_survey.ml_confidence 1 100 %}%"></div>
+                </div>
+                <span class="text-[10px] text-violet-400 font-bold tabular-nums">
+                    {% widthratio latest_survey.ml_confidence 1 100 %}%
+                </span>
+            </div>
+
+            <!-- "Bu programa göre dinle" butonu -->
+            <a href="?freq={{ latest_survey.recommended_frequency|capfirst }}&duration={{ latest_survey.recommended_minutes }}"
+               class="block w-full text-center py-3 rounded-xl font-bold text-sm text-white
+                      bg-gradient-to-r from-violet-500 to-purple-600
+                      hover:from-violet-600 hover:to-purple-700 transition">
+                <i class="fas fa-headphones mr-2"></i> Bu Programa Göre Dinle
+            </a>
+            <p class="text-center text-[10px] text-stone-600 mt-2">
+                Plan tarihi: {{ latest_survey.plan_start_date|date:"d.m.Y" }} —
+                {{ latest_survey.plan_expires_at|date:"d.m.Y" }}
+            </p>
+        </div>
+        {% endif %}
+
+        {% endif %}
+        <!-- ─── /ANKET KARTLARI ─── -->
+
+        <!-- ÜST LİSTE: SEÇİM ALANI -->
+        <!-- 1. BİREYSEL KULLANICI İÇİN: Frekans Kütüphanesi (psikolog atanmamışsa) -->
+        {% if user.is_individual and not user.assigned_psychologist %}
+        <div class="glass-card p-5 rounded-2xl">
+            <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+                <h3 class="text-stone-300 text-sm font-bold flex items-center tracking-wide uppercase">
+                    <i class="fas fa-wave-square mr-2 text-violet-400"></i> Frekans Kütüphanesi
+                </h3>
+
+                <!-- Süre Seçici -->
+                <div class="flex items-center gap-2 bg-stone-800/50 p-1.5 rounded-lg border border-white/5">
+                    <label class="text-xs text-stone-400 font-bold px-2">Süre (Dk):</label>
+                    <input type="number" id="freqDuration" value="{{ prescription.duration_minutes }}" min="1" max="180"
+                        class="bg-stone-700 text-white text-sm font-bold w-16 text-center rounded border border-stone-600 focus:border-violet-500 focus:outline-none py-1">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {% for freq in standard_frequencies %}
+                <a href="?freq={{ freq.value }}" data-base-href="?freq={{ freq.value }}" class="freq-card-link relative group p-3 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center text-center gap-2
+                   {% if prescription.frequency == freq.value %}
+                       bg-violet-600/20 border-violet-500/50 shadow-[0_0_15px_rgba(139,92,246,0.15)]
+                   {% else %}
+                       bg-stone-800/40 border-white/5 hover:bg-stone-800 hover:border-white/20 hover:-translate-y-1
+                   {% endif %}">
+
+                    <div
+                        class="w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                        {% if prescription.frequency == freq.value %}bg-violet-500 text-white shadow-lg{% else %}bg-{{ freq.color_cls }}-500/20 text-{{ freq.color_cls }}-400 group-hover:bg-{{ freq.color_cls }}-500 group-hover:text-white transition{% endif %}">
+                        <i class="fas {{ freq.icon }}"></i>
+                    </div>
+
+                    <div>
+                        <span
+                            class="block text-sm font-bold {% if prescription.frequency == freq.value %}text-white{% else %}text-stone-300{% endif %}">
+                            {{ freq.label }}
+                        </span>
+                    </div>
+
+                    {% if prescription.frequency == freq.value %}
+                    <div class="absolute inset-0 border-2 border-violet-500/30 rounded-xl pointer-events-none"></div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const durationInput = document.getElementById('freqDuration');
+                    const links = document.querySelectorAll('.freq-card-link');
+
+                    // URL'den mevcut müzik parametrelerini al
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const bgMusic = urlParams.get('bg_music');
+                    const musicTitle = urlParams.get('title');
+
+                    function updateLinks() {
+                        const duration = durationInput.value;
+                        links.forEach(link => {
+                            let base = link.getAttribute('data-base-href');
+                            let newUrl = base + '&duration=' + duration;
+                            if (bgMusic) newUrl += '&bg_music=' + bgMusic;
+                            if (musicTitle) newUrl += '&title=' + musicTitle;
+                            link.href = newUrl;
+                        });
+                    }
+
+                    durationInput.addEventListener('input', updateLinks);
+                    durationInput.addEventListener('change', updateLinks); // Tetiklemek için
+
+                    // Sayfa yüklendiğinde linkleri mevcut duration ile güncelle (Müzik parametrelerini korumak için)
+                    updateLinks();
+                });
+            </script>
+        </div>
+        <!-- 2. HASTA İÇİN: Dr. Atamalı Reçeteler -->
+        {% elif all_prescriptions %}
+        <div class="glass-card p-5 rounded-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-stone-300 text-sm font-bold flex items-center tracking-wide uppercase">
+                    <i class="fas fa-user-md mr-2 text-violet-400"></i> Dr. Atamalı Reçeteleriniz
+                </h3>
+                <span class="text-[10px] text-stone-500 bg-stone-800 px-2 py-1 rounded border border-white/5">
+                    {{ all_prescriptions|length }} Adet Tanımlı
+                </span>
+            </div>
+
+            <div class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                {% for pres in all_prescriptions %}
+                <a href="?pres_id={{ pres.id }}{% if selected_music %}&bg_music={{ selected_music }}&title={{ music_title }}{% endif %}"
+                    class="flex-shrink-0 relative group px-4 py-3 rounded-xl border transition-all duration-300 min-w-[220px]
+                   {% if prescription.id == pres.id %}
+                       bg-violet-600/20 border-violet-500/50 shadow-[0_0_15px_rgba(139,92,246,0.15)]
+                   {% else %}
+                       bg-stone-800/40 border-white/5 hover:bg-stone-800 hover:border-white/20
+                   {% endif %}">
+
+                    <div class="flex items-center gap-3">
+                        <!-- İkon -->
+                        <div
+                            class="w-10 h-10 rounded-full flex items-center justify-center shrink-0
+                            {% if prescription.id == pres.id %}bg-violet-500 text-white shadow-lg shadow-violet-500/40{% else %}bg-stone-700 text-stone-400 group-hover:text-stone-200{% endif %}">
+
+                            <!-- Frekansa göre ikon değişimi -->
+                            {% if pres.get_frequency_display == 'Delta' %}<i class="fas fa-bed"></i>
+                            {% elif pres.get_frequency_display == 'Theta' %}<i class="fas fa-spa"></i>
+                            {% elif pres.get_frequency_display == 'Alpha' %}<i class="fas fa-wind"></i>
+                            {% elif pres.get_frequency_display == 'Beta' %}<i class="fas fa-brain"></i>
+                            {% elif pres.get_frequency_display == 'Gamma' %}<i class="fas fa-bolt"></i>
+                            {% else %}<i class="fas fa-wave-square"></i>{% endif %}
+                        </div>
+
+                        <!-- Bilgiler -->
+                        <div class="overflow-hidden flex-1">
+                            <div
+                                class="text-sm font-bold truncate {% if prescription.id == pres.id %}text-white{% else %}text-stone-400 group-hover:text-stone-200{% endif %}">
+                                {{ pres.get_frequency_display }}
+                            </div>
+                            <!-- Robust HTML: Break lines to prevent formatter from breaking inside tags -->
+                            <div class="text-[10px] text-stone-500 flex flex-col mt-0.5">
+                                <span class="flex items-center gap-1">
+                                    <i class="fas fa-stopwatch text-[9px]"></i>
+                                    {{ pres.duration_minutes }} Dk / {{ pres.total_days }} gün
+                                </span>
+                                <span class="text-[9px] opacity-60 mt-0.5">
+                                    Atanma:
+                                    {{ pres.created_at|date:"d.m.Y" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seçili Çerçevesi -->
+                    {% if prescription.id == pres.id %}
+                    <div class="absolute inset-0 border-2 border-violet-500/30 rounded-xl pointer-events-none">
+                        <div
+                            class="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#34d399]">
+                        </div>
+                    </div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if prescription %}
+        <!-- Ana Oynatıcı Kartı -->
+        <div class="glass-card p-8 rounded-3xl shadow-2xl relative overflow-hidden group">
+
+            <!-- Hedef Süre Rozeti -->
+            <div
+                class="absolute top-0 right-0 bg-gradient-to-bl from-violet-600 to-purple-700 text-white text-sm font-bold px-6 py-2 rounded-bl-2xl shadow-lg z-20">
+                <i class="fas fa-hourglass-half mr-2 opacity-80"></i>Hedef: {{ prescription.duration_minutes }} Dk
+            </div>
+
+            <!-- Müzik Dropdown -->
+            <div class="absolute top-0 left-0 p-6 z-30">
+                <div class="relative" id="musicDropdownWrapper">
+                    <!-- Trigger Butonu -->
+                    <button onclick="toggleMusicDropdown()"
+                        class="bg-stone-800/90 hover:bg-stone-700 text-white px-4 py-2 rounded-xl text-sm font-medium border border-white/10 transition flex items-center gap-2 backdrop-blur-md shadow-lg">
+                        <div class="w-2 h-2 rounded-full {% if selected_music %}bg-emerald-400 animate-pulse{% else %}bg-stone-500{% endif %}"></div>
+                        <i class="fas fa-music text-stone-300"></i>
+                        <span id="musicLabel">{{ music_title }}</span>
+                        <i class="fas fa-chevron-down text-xs opacity-50 ml-1 transition-transform" id="musicChevron"></i>
+                    </button>
+
+                    <!-- Dropdown Menü -->
+                    <div id="musicDropdown"
+                        class="hidden absolute top-full left-0 mt-2 w-64 bg-stone-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+
+                        <!-- Sessiz Mod -->
+                        <a href="?{% if prescription.id %}pres_id={{ prescription.id }}{% elif prescription.frequency %}freq={{ prescription.frequency }}&duration={{ prescription.duration_minutes }}{% endif %}"
+                            class="flex items-center gap-3 px-4 py-3 hover:bg-stone-800/60 transition group {% if not selected_music %}bg-stone-800/40{% endif %}">
+                            <div class="w-8 h-8 rounded-lg bg-stone-700 flex items-center justify-center shrink-0">
+                                <i class="fas fa-volume-mute text-stone-400 text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-sm text-stone-300 group-hover:text-white transition block">Sessiz Mod</span>
+                                <span class="text-xs text-stone-600">Sadece frekans sesi</span>
+                            </div>
+                            {% if not selected_music %}
+                            <i class="fas fa-check text-emerald-400 text-xs shrink-0"></i>
+                            {% endif %}
+                        </a>
+
+                        {% if music_tracks %}
+                        <div class="border-t border-white/5"></div>
+                        {% for track in music_tracks %}
+                        <a href="?bg_music={{ track.audio_file.url }}&title={{ track.title }}{% if prescription.id %}&pres_id={{ prescription.id }}{% elif prescription.frequency %}&freq={{ prescription.frequency }}&duration={{ prescription.duration_minutes }}{% endif %}"
+                            class="flex items-center gap-3 px-4 py-3 hover:bg-stone-800/60 transition group {% if selected_music == track.audio_file.url %}bg-stone-800/40{% endif %}">
+                            <div class="w-8 h-8 rounded-lg bg-gradient-to-br {{ track.color }} flex items-center justify-center shrink-0 shadow-sm">
+                                <i class="fas {{ track.icon }} text-white text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-sm text-stone-300 group-hover:text-white transition block truncate">{{ track.title }}</span>
+                                {% if track.description %}<span class="text-xs text-stone-600 truncate block">{{ track.description }}</span>{% endif %}
+                            </div>
+                            {% if selected_music == track.audio_file.url %}
+                            <i class="fas fa-check text-emerald-400 text-xs shrink-0"></i>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                        {% else %}
+                        <div class="px-4 py-4 text-center">
+                            <p class="text-xs text-stone-600">Henüz müzik eklenmemiş.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative z-10 mb-8 mt-12">
+                <h2
+                    class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-purple-400 to-emerald-400 mb-4">
+                    {{ prescription.get_frequency_display }}
+                </h2>
+                <div class="bg-stone-800/50 border border-white/5 p-5 rounded-xl backdrop-blur-md">
+                    <p class="text-stone-300 leading-relaxed flex items-start">
+                        <i class="fas fa-quote-left text-violet-500 mr-3 mt-1 text-xl opacity-50"></i>
+                        {{ prescription.notes }}
+                    </p>
+                </div>
+            </div>
+
+            <div
+                class="bg-stone-900/80 rounded-3xl p-10 text-center relative overflow-hidden border border-white/5 shadow-inner">
+                <div class="relative z-10 flex flex-col items-center justify-center">
+                    <div class="text-8xl font-mono font-bold mb-8 tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white to-stone-400 drop-shadow-lg"
+                        id="timerDisplay">
+                        {{ prescription.duration_minutes }}:00
+                    </div>
+
+                    {% if today_log.is_completed %}
+                    <div
+                        class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-8 py-4 rounded-2xl flex items-center gap-3 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                        <i class="fas fa-check-circle text-2xl"></i>
+                        <span class="font-bold text-lg">Bugünkü Seans Tamamlandı</span>
+                    </div>
+                    {% else %}
+                    <button id="playBtn" onclick="toggleSession()"
+                        class="group relative w-24 h-24 flex items-center justify-center rounded-full bg-stone-800 border-4 border-stone-700 hover:border-emerald-500/50 transition-all duration-500 shadow-2xl">
+                        <div
+                            class="absolute inset-0 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md">
+                        </div>
+                        <i
+                            class="fas fa-play text-3xl text-emerald-400 group-hover:text-white relative z-10 ml-1 transition-colors duration-300"></i>
+                    </button>
+                    <p class="mt-8 text-stone-500 text-xs font-bold tracking-[0.2em] uppercase transition-colors duration-300"
+                        id="statusText">Terapinizi Başlatın</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="glass-card p-12 rounded-3xl text-center border border-dashed border-stone-700 bg-stone-800/30">
+            <div
+                class="inline-flex items-center justify-center w-20 h-20 bg-stone-700/50 rounded-full mb-6 ring-1 ring-stone-600">
+                <i class="fas fa-clipboard-list text-3xl text-stone-500"></i>
+            </div>
+            <h3 class="text-xl font-bold text-stone-300 mb-2">Aktif Reçete Bulunamadı</h3>
+            <p class="text-stone-500 max-w-sm mx-auto text-sm">Doktorunuz henüz sizin için bir tedavi programı
+                tanımlamamış. Lütfen doktorunuzla iletişime geçiniz.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sağ Taraf: Geçmiş Kayıtlar -->
+    <div class="glass-card p-6 rounded-3xl h-[600px] flex flex-col">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+            <h3 class="font-bold text-xl text-stone-200 flex items-center">
+                <i class="fas fa-history text-violet-400 mr-3"></i>Aktivite Günlüğü
+            </h3>
+            <span class="text-[10px] bg-stone-800 text-stone-400 px-2 py-1 rounded border border-white/5">Son 30
+                Gün</span>
+        </div>
+
+        <div class="space-y-3 overflow-y-auto custom-scrollbar flex-grow pr-2">
+            {% for log in history %}
+            <div
+                class="flex justify-between items-center p-3 rounded-xl border transition-all duration-300 hover:scale-[1.01] group {% if log.is_completed %}bg-emerald-900/10 border-emerald-500/20 hover:bg-emerald-900/20{% else %}bg-stone-800/40 border-white/5 hover:bg-stone-800/60{% endif %}">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs
+                        {% if log.is_completed %}bg-emerald-500/20 text-emerald-400{% else %}bg-stone-700/50 text-stone-400{% endif %}">
+                        {{ log.date|date:"d" }}<br>{{ log.date|date:"M" }}
+                    </div>
+                    <div>
+                        {% if log.frequency %}
+                        <div class="text-sm font-bold text-white mb-0.5">
+                            {{ log.frequency }}
+                        </div>
+                        {% else %}
+                        <div class="text-sm font-bold text-stone-500 mb-0.5">
+                            -
+                        </div>
+                        {% endif %}
+                        <div class="text-[10px] text-stone-400">
+                            {% widthratio log.duration_listened 60 1 %} dk dinlendi
+                        </div>
+                    </div>
+                </div>
+
+                {% if log.is_completed %}
+                <div class="text-emerald-400" title="Tamamlandı">
+                    <i class="fas fa-check-circle text-lg"></i>
+                </div>
+                {% else %}
+                <div class="text-stone-600 group-hover:text-stone-500" title="Yarım Kaldı">
+                    <i class="fas fa-clock text-lg"></i>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center h-full text-stone-600">
+                <i class="far fa-calendar-times text-3xl mb-3 opacity-50"></i>
+                <p class="text-sm">Henüz kayıt bulunmuyor.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Seans Tamamlandı Bildirimi -->
+<div id="completionToast"
+    class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] hidden">
+    <div class="bg-emerald-900/90 border border-emerald-500/50 backdrop-blur-md text-emerald-300 px-8 py-4 rounded-2xl shadow-2xl shadow-emerald-900/50 flex items-center gap-4 text-base font-semibold">
+        <div class="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center shrink-0">
+            <i class="fas fa-check-circle text-emerald-400 text-xl"></i>
+        </div>
+        <div>
+            <div class="text-white font-bold">Tebrikler!</div>
+            <div class="text-sm text-emerald-400 font-normal">Günlük seans başarıyla tamamlandı.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ---------- Müzik Dropdown ---------- */
+    function toggleMusicDropdown() {
+        const menu = document.getElementById('musicDropdown');
+        const chevron = document.getElementById('musicChevron');
+        const isOpen = !menu.classList.contains('hidden');
+        if (isOpen) {
+            menu.classList.add('hidden');
+            chevron.style.transform = '';
+        } else {
+            menu.classList.remove('hidden');
+            chevron.style.transform = 'rotate(180deg)';
+        }
+    }
+    // Dropdown dışına tıklanınca kapat
+    document.addEventListener('click', function(e) {
+        const wrapper = document.getElementById('musicDropdownWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            document.getElementById('musicDropdown').classList.add('hidden');
+            const chevron = document.getElementById('musicChevron');
+            if (chevron) chevron.style.transform = '';
+        }
+    });
+    /* ------------------------------------ */
+
+    let isPlaying = false;
+    let audioContext = null;
+    let oscillators = [];
+
+    let backgroundAudio = null;
+    const musicFile = "{{ selected_music|escapejs }}";
+
+    // LocalStorage'dan timer durumunu yükle (aynı gün ve aynı reçete ise)
+    const prescriptionId = "{{ prescription.id|default:''|escapejs }}";
+    const prescriptionFreq = "{{ prescription.frequency|default:''|escapejs }}";
+    const today = new Date().toISOString().slice(0, 10);
+    const storageKey = `timer_${prescriptionId}_${today}`;
+
+    const serverTimeLeft = parseInt("{{ timer_start_seconds|escapejs }}", 10) || 0;
+    const serverDuration = parseInt("{{ today_listened_seconds|escapejs }}", 10) || 0;
+
+    // Kaydedilmiş durum varsa kullan, yoksa sunucu değerini al
+    const savedState = JSON.parse(localStorage.getItem(storageKey) || 'null');
+    let timeLeft = (savedState && savedState.timeLeft < serverTimeLeft) ? savedState.timeLeft : serverTimeLeft;
+    let durationListened = (savedState && savedState.durationListened > serverDuration) ? savedState.durationListened : serverDuration;
+    let timerInterval = null;
+
+    const freqMap = { 'Delta': 2, 'Theta': 6, 'Alpha': 10, 'Beta': 20, 'Gamma': 40 };
+    const freqType = "{{ prescription.frequency|default:'Alpha'|escapejs }}";
+    const targetBeat = freqMap[freqType] || 10;
+    const baseFreq = 200;
+
+    // Sayfa yüklenince mevcut durumu göster
+    updateDisplay();
+
+    function saveTimerState() {
+        localStorage.setItem(storageKey, JSON.stringify({ timeLeft, durationListened }));
+    }
+
+    function clearTimerState() {
+        localStorage.removeItem(storageKey);
+    }
+
+    function showCompletionToast() {
+        const toast = document.getElementById('completionToast');
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+            location.reload();
+        }, 3000);
+    }
+
+    function initAudio() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        if (musicFile && musicFile !== 'None' && musicFile !== '' && !backgroundAudio) {
+            backgroundAudio = new Audio(musicFile);
+            backgroundAudio.loop = true;
+            backgroundAudio.volume = 0.5;
+        }
+    }
+
+    function playSound() {
+        initAudio();
+
+        if (backgroundAudio) {
+            backgroundAudio.play().catch(e => console.log("Müzik başlatılamadı:", e));
+        }
+
+        const oscL = audioContext.createOscillator();
+        const oscR = audioContext.createOscillator();
+        const merger = audioContext.createChannelMerger(2);
+
+        oscL.frequency.value = baseFreq;
+        oscR.frequency.value = baseFreq + targetBeat;
+
+        const pannerL = audioContext.createStereoPanner();
+        pannerL.pan.value = -1;
+        const pannerR = audioContext.createStereoPanner();
+        pannerR.pan.value = 1;
+
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 3);
+
+        oscL.connect(pannerL).connect(merger, 0, 0);
+        oscR.connect(pannerR).connect(merger, 0, 1);
+        merger.connect(gainNode).connect(audioContext.destination);
+
+        oscL.start();
+        oscR.start();
+        oscillators = [oscL, oscR, gainNode];
+    }
+
+    function stopSound() {
+        if (backgroundAudio) {
+            backgroundAudio.pause();
+            backgroundAudio.currentTime = 0;
+        }
+        if (oscillators.length > 0) {
+            const gainNode = oscillators[2];
+            if (gainNode && audioContext) {
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1);
+                setTimeout(() => {
+                    oscillators.forEach(osc => { if (osc.stop) osc.stop(); });
+                    oscillators = [];
+                }, 1000);
+            } else {
+                oscillators.forEach(osc => { if (osc.stop) osc.stop(); });
+                oscillators = [];
+            }
+        }
+    }
+
+    function updateDisplay() {
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        const display = document.getElementById('timerDisplay');
+        if (display) {
+            display.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+    }
+
+    function saveProgress(completed) {
+        return fetch("{% url 'save_progress' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                duration: durationListened,
+                completed: completed,
+                prescription_id: prescriptionId,
+                frequency: prescriptionFreq
+            })
+        });
+    }
+
+    function toggleSession() {
+        const btn = document.getElementById('playBtn');
+        const status = document.getElementById('statusText');
+        const btnIcon = btn.querySelector('i');
+
+        if (isPlaying) {
+            stopSound();
+            clearInterval(timerInterval);
+            btn.classList.remove('pulse-animation', 'border-emerald-500');
+            btn.classList.add('border-stone-700');
+            btnIcon.classList.replace('fa-pause', 'fa-play');
+            btnIcon.classList.replace('text-white', 'text-emerald-400');
+            status.innerText = "DURAKLATILDI";
+            status.className = "mt-8 text-stone-500 text-xs font-bold tracking-[0.2em] uppercase";
+            saveProgress(false);
+            saveTimerState();
+        } else {
+            playSound();
+            btn.classList.remove('border-stone-700');
+            btn.classList.add('pulse-animation', 'border-emerald-500');
+            btnIcon.classList.replace('fa-play', 'fa-pause');
+            btnIcon.classList.replace('text-emerald-400', 'text-white');
+            status.innerText = "TERAPİ UYGULANIYOR...";
+            status.className = "mt-8 text-emerald-400 text-xs font-bold tracking-[0.2em] uppercase animate-pulse";
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    durationListened++;
+                    updateDisplay();
+                    // Her 10 saniyede bir localStorage'a kaydet
+                    if (durationListened % 10 === 0) saveTimerState();
+                } else {
+                    stopSound();
+                    clearInterval(timerInterval);
+                    clearTimerState();
+                    saveProgress(true).then(() => showCompletionToast());
+                }
+            }, 1000);
+        }
+        isPlaying = !isPlaying;
+    }
+</script>
+{% endblock %}
