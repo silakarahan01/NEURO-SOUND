@@ -46,6 +46,7 @@ def frequency_info_view(request):
             'range': freq_data['frequency'],
             'desc': freq_data['description'],
             'benefits': freq_data['benefits'],
+            'usage': freq_data['usage'],
             'icon': freq_data['icon_class'],
             'color': freq_data['color'],
             'tailwind_classes': freq_data['tailwind_classes'],
