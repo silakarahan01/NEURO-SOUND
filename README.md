@@ -11,6 +11,7 @@
 
 ## İçindekiler
 - [Proje Hakkında](#proje-hakkında)
+- [Ekran Görüntüleri](#ekran-görüntüleri)
 - [Temel Özellikler](#temel-özellikler)
 - [ML Frekans Öneri Modülü](#ml-frekans-öneri-modülü)
 - [Mimari](#mimari)
@@ -28,6 +29,18 @@
 ## Proje Hakkında
 
 NEURO SOUND, ses frekanslarının (Delta · Theta · Alpha · Beta · Gamma) beyin dalgaları üzerindeki etkisinden yararlanan tamamlayıcı bir terapi platformudur. Psikologlar danışanlarına frekans, süre ve gün bazında reçete oluşturur; danışanlar kendi panelinden Web Audio API ile **client-side** olarak üretilen sesleri dinler. Sistem her oturumun süresini ve tamamlanma durumunu otomatik kaydeder.
+
+## Ekran Görüntüleri
+
+### Süper Yönetici Paneli
+Platform geneli istatistikler (toplam danışan, aktif psikolog, bireysel kullanıcı, toplam dinlenme), ML öneri dağılımı, en çok dinlenen frekanslar, onay bekleyen psikologlar ve müzik kütüphanesi.
+
+![Süper Yönetici Paneli](docs/screenshots/super-admin-dashboard.png)
+
+### Bireysel Kullanıcı — Frekans Paneli
+Frekans kütüphanesi (Delta · Theta · Alpha · Beta · Gamma), gerçek-zamanlı binaural beat oynatıcı, seans zamanlayıcısı (hedef süre) ve son 30 günlük aktivite günlüğü.
+
+![Frekans Paneli](docs/screenshots/frequency-player.png)
 
 ## Temel Özellikler
 
